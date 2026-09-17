@@ -1,0 +1,146 @@
+{
+ "ABC": {
+  "alias": "COR",
+  "rows": 5461,
+  "first": "2005-01-03",
+  "last": "2026-09-17"
+ },
+ "ANTM": {
+  "alias": "ELV",
+  "rows": 5461,
+  "first": "2005-01-03",
+  "last": "2026-09-17"
+ },
+ "BLL": {
+  "alias": "BALL",
+  "rows": 5461,
+  "first": "2005-01-03",
+  "last": "2026-09-17"
+ },
+ "RE": {
+  "alias": "EG",
+  "rows": 5461,
+  "first": "2005-01-03",
+  "last": "2026-09-17"
+ },
+ "PEAK": {
+  "alias": "DOC",
+  "rows": 5461,
+  "first": "2005-01-03",
+  "last": "2026-09-17"
+ },
+ "CDAY": {
+  "alias": "DAY",
+  "rows": 0,
+  "first": "",
+  "last": ""
+ },
+ "FLT": {
+  "alias": "CPAY",
+  "rows": 3962,
+  "first": "2010-12-15",
+  "last": "2026-09-17"
+ },
+ "PKI": {
+  "alias": "RVTY",
+  "rows": 5461,
+  "first": "2005-01-03",
+  "last": "2026-09-17"
+ },
+ "NLOK": {
+  "alias": "GEN",
+  "rows": 5461,
+  "first": "2005-01-03",
+  "last": "2026-09-17"
+ },
+ "VIAC": {
+  "alias": "PARA",
+  "rows": 1405,
+  "first": "2021-02-12",
+  "last": "2026-09-17"
+ },
+ "GPS": {
+  "alias": "GAP",
+  "rows": 5461,
+  "first": "2005-01-03",
+  "last": "2026-09-17"
+ },
+ "BK": {
+  "alias": "BNY",
+  "rows": 5461,
+  "first": "2005-01-03",
+  "last": "2026-09-17"
+ },
+ "FBHS": {
+  "alias": "FBIN",
+  "rows": 3772,
+  "first": "2011-09-16",
+  "last": "2026-09-17"
+ },
+ "MMC": {
+  "alias": "MRSH",
+  "rows": 5461,
+  "first": "2005-01-03",
+  "last": "2026-09-17"
+ },
+ "DISH": {
+  "alias": "SATS",
+  "rows": 0,
+  "first": "",
+  "last": ""
+ },
+ "WRK": {
+  "alias": "SW",
+  "rows": 4592,
+  "first": "2008-06-17",
+  "last": "2026-09-17"
+ },
+ "DISCA": {
+  "alias": "WBD",
+  "rows": 5332,
+  "first": "2005-07-08",
+  "last": "2026-09-17"
+ },
+ "DISCK": {
+  "alias": "WBD",
+  "rows": 5332,
+  "first": "2005-07-08",
+  "last": "2026-09-17"
+ },
+ "CTRA": {
+  "alias": "CTRA",
+  "rows": 0,
+  "first": "",
+  "last": ""
+ },
+ "AVB": {
+  "alias": "AVB",
+  "rows": 27,
+  "first": "2026-07-17",
+  "last": "2026-08-24"
+ },
+ "EQR": {
+  "alias": "EQR",
+  "rows": 14,
+  "first": "2026-07-17",
+  "last": "2026-08-21"
+ },
+ "EA": {
+  "alias": "EA",
+  "rows": 1,
+  "first": "2026-08-04",
+  "last": "2026-08-04"
+ },
+ "SEE": {
+  "alias": "SEE",
+  "rows": 0,
+  "first": "",
+  "last": ""
+ },
+ "K": {
+  "alias": "K",
+  "rows": 0,
+  "first": "",
+  "last": ""
+ }
+}
