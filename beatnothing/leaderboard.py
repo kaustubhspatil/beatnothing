@@ -9,26 +9,43 @@ A submission is a folder under submissions/<name>/ holding
 
 Every submission is scored on every window in WINDOWS through the same engine
 against the same do nothing bar (the always long contestant on the same days).
+
+The benchmark root is, in order: the BEATNOTHING_ROOT environment variable, the
+repository this file lives in when it has a submissions folder, else the current
+working directory. An installed copy of the package therefore scores whatever
+folder you run it from.
 """
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 from .engine import Backtest, COST_BPS
-from .score import net_edge, cost_grid, sharpe
-
-ROOT = Path(__file__).resolve().parents[1]
-SUBMISSIONS = ROOT / "submissions"
-LEADERBOARD = ROOT / "leaderboard"
+from .score import net_edge, cost_grid
 
 WINDOWS = {
     "sealed_2022_2025": ("2022-01-01", "2025-12-31"),
     "post_cutoff_2026": ("2026-01-01", "2026-12-31"),
 }
+
+
+def find_root() -> Path:
+    env = os.environ.get("BEATNOTHING_ROOT")
+    if env:
+        return Path(env)
+    here = Path(__file__).resolve().parents[1]
+    if (here / "submissions").exists():
+        return here
+    return Path.cwd()
+
+
+ROOT = find_root()
+SUBMISSIONS = ROOT / "submissions"
+LEADERBOARD = ROOT / "leaderboard"
 
 
 def load_actual(path: Path) -> pd.DataFrame:
@@ -37,25 +54,35 @@ def load_actual(path: Path) -> pd.DataFrame:
     return df.pivot(index="Date", columns="Ticker", values="target").sort_index()
 
 
+def load_signal(path: Path) -> pd.DataFrame:
+    """A long format signal file (Date, Ticker, value) as a wide frame."""
+    sig = pd.read_parquet(path)
+    return sig.pivot(index="Date", columns="Ticker", values="value").sort_index()
+
+
 def load_submission(folder: Path) -> tuple[dict, pd.DataFrame]:
     meta = json.loads((folder / "meta.json").read_text(encoding="utf-8"))
-    sig = pd.read_parquet(folder / "signal.parquet")
-    wide = sig.pivot(index="Date", columns="Ticker", values="value").sort_index()
-    return meta, wide
+    return meta, load_signal(folder / "signal.parquet")
+
+
+def bar_returns(actual: pd.DataFrame, cost_bps: float = COST_BPS) -> pd.Series:
+    """The do nothing bar on exactly these days: always long, same costs."""
+    always = pd.DataFrame(1.0, index=actual.index, columns=actual.columns)
+    return Backtest(actual, predictions=always, cost_bps=cost_bps).daily_returns
 
 
 def score_window(actual: pd.DataFrame, wide: pd.DataFrame, kind: str, start, end,
-                 bar_returns: pd.Series, n_boot: int = 2000) -> dict | None:
+                 bar: pd.Series, n_boot: int = 2000, cost_bps: float = COST_BPS) -> dict | None:
     a = actual.loc[(actual.index >= start) & (actual.index <= end)]
     w = wide.loc[(wide.index >= start) & (wide.index <= end)]
     if len(a) == 0 or len(w) == 0:
         return None
     kw = {"predictions": w} if kind == "predictions" else {"weights": w}
-    bt = Backtest(a, cost_bps=COST_BPS, **kw)
+    bt = Backtest(a, cost_bps=cost_bps, **kw)
     stats = bt.stats()
     r = bt.daily_returns
-    bar = bar_returns.reindex(r.index).fillna(0.0)
-    edge = net_edge(r.values, bar.values, n_boot=n_boot)
+    b = bar.reindex(r.index).fillna(0.0)
+    edge = net_edge(r.values, b.values, n_boot=n_boot)
     grid = cost_grid(a, grid=(0, 10, 20), **kw)
     stats.update({"net_edge": edge["net_edge"], "ci_low": edge["ci_low"], "ci_high": edge["ci_high"],
                   "p_positive": edge["p_positive"], "clears_bar": edge["clears_bar"],
@@ -65,14 +92,30 @@ def score_window(actual: pd.DataFrame, wide: pd.DataFrame, kind: str, start, end
     return stats
 
 
-def build(actual_path: Path, n_boot: int = 2000) -> dict:
+def score_signal(signal_path: Path, actual_path: Path, kind: str = "predictions", start=None, end=None,
+                 n_boot: int = 2000, cost_bps: float = COST_BPS) -> dict:
+    """Score one signal file against one realised returns file. Used by the CLI."""
     actual = load_actual(actual_path)
-    subs = sorted(p for p in SUBMISSIONS.iterdir() if (p / "meta.json").exists())
-    always = pd.DataFrame(1.0, index=actual.index, columns=actual.columns)
+    wide = load_signal(signal_path)
+    start = pd.Timestamp(start) if start else actual.index.min()
+    end = pd.Timestamp(end) if end else actual.index.max()
+    a = actual.loc[(actual.index >= start) & (actual.index <= end)]
+    res = score_window(actual, wide, kind, start, end, bar_returns(a, cost_bps), n_boot=n_boot, cost_bps=cost_bps)
+    if res is None:
+        raise ValueError("no overlapping days between the signal and the realised returns in that window")
+    res["window"] = [str(start.date()), str(end.date())]
+    return res
+
+
+def build(actual_path: Path, n_boot: int = 2000, root: Path | None = None) -> dict:
+    root = root or ROOT
+    submissions = root / "submissions"
+    actual = load_actual(actual_path)
+    subs = sorted(p for p in submissions.iterdir() if (p / "meta.json").exists())
     bars = {}
     for name, (s, e) in WINDOWS.items():
         a = actual.loc[(actual.index >= s) & (actual.index <= e)]
-        bars[name] = Backtest(a, predictions=always.loc[a.index]).daily_returns
+        bars[name] = bar_returns(a)
     board = {"windows": WINDOWS, "cost_bps": COST_BPS, "bar": "always long, equal weight, same universe, same costs",
              "entries": []}
     for folder in subs:
@@ -124,12 +167,14 @@ def to_markdown(board: dict) -> str:
     return "\n".join(out) + "\n"
 
 
-def main(actual_path: str | Path | None = None, n_boot: int = 2000):
-    actual_path = Path(actual_path) if actual_path else ROOT / "data" / "actual_returns.parquet"
-    board = build(actual_path, n_boot=n_boot)
-    LEADERBOARD.mkdir(parents=True, exist_ok=True)
-    (LEADERBOARD / "leaderboard.json").write_text(json.dumps(board, indent=2, default=str), encoding="utf-8")
-    (LEADERBOARD / "LEADERBOARD.md").write_text(to_markdown(board), encoding="utf-8")
+def main(actual_path: str | Path | None = None, n_boot: int = 2000, root: str | Path | None = None):
+    root = Path(root) if root else ROOT
+    actual_path = Path(actual_path) if actual_path else root / "data" / "actual_returns.parquet"
+    board = build(actual_path, n_boot=n_boot, root=root)
+    out_dir = root / "leaderboard"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "leaderboard.json").write_text(json.dumps(board, indent=2, default=str), encoding="utf-8")
+    (out_dir / "LEADERBOARD.md").write_text(to_markdown(board), encoding="utf-8")
     return board
 
 

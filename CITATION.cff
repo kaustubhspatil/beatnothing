@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use beatnothing, please cite it as below."
+title: "beatnothing: a net of cost benchmark for daily equity signals"
+authors:
+  - family-names: Patil
+    given-names: Kaustubh
+version: 0.1.0
+date-released: 2026-09-17
+license: MIT
+repository-code: "https://github.com/kaustubhspatil/beatnothing"
+abstract: >-
+  One engine, one bar, one score. Every contestant is scored net of a flat
+  transaction cost against an equal weight position in the same point in time
+  universe. The score is the Net Edge, the strategy's net Sharpe minus the do
+  nothing Sharpe on the same days, with a paired stationary bootstrap interval.
+  Ships nine frozen contestants and a monthly forward track.
