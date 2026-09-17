@@ -14,7 +14,7 @@ import pandas as pd
 
 TRADING_DAYS = 252
 TARGET_HORIZON = 1
-BENCHMARKS = ["SPY", "QQQ"]
+BENCHMARKS = ["SPY", "QQQ", "RSP"]   # never model inputs; RSP is the investable equal weight index
 
 
 # ── Indicators (each takes per-ticker series, returns an aligned series) ──

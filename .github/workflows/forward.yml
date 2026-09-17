@@ -24,6 +24,6 @@ jobs:
         run: |
           git config user.name "beatnothing bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/actual_returns.parquet data/MANIFEST.json leaderboard/
+          git add data/actual_returns.parquet data/benchmark_returns.parquet data/MANIFEST.json leaderboard/
           git commit -m "Forward track: rescore on prices through $(date +%F)" || echo "nothing to commit"
           git push

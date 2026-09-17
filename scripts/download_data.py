@@ -31,8 +31,11 @@ RAW = ROOT / "data" / "raw"
 TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "AVGO", "CRM", "JPM", "BAC", "GS", "MS",
            "WFC", "BLK", "C", "AXP", "UNH", "JNJ", "PFE", "ABBV", "MRK", "LLY", "WMT", "PG", "KO", "PEP",
            "COST", "MCD", "NKE", "XOM", "CVX", "COP", "SLB", "CAT", "BA", "HON", "UPS", "GE", "DIS",
-           "NFLX", "CMCSA", "VZ", "LIN", "APD", "NEE", "DUK", "AMT", "PLD", "SPY", "QQQ"]
+           "NFLX", "CMCSA", "VZ", "LIN", "APD", "NEE", "DUK", "AMT", "PLD", "SPY", "QQQ", "RSP"]
 MARKET = {"vix": "^VIX", "treasury_10y": "^TNX"}
+# Investable bars: next day returns of ETFs that hold the whole index, dead names included.
+# RSP is the equal weight S&P 500 (since 2003), SPY the cap weighted one. Neither is a model input.
+BARS = ["RSP", "SPY"]
 
 
 def _flat(df):
@@ -77,10 +80,16 @@ def rebuild_actual() -> None:
     panel.to_parquet(ROOT / "data" / "feature_panel.parquet", index=False)
     actual = panel[panel["Date"] >= "2022-01-01"][["Date", "Ticker", "target"]]
     actual.to_parquet(ROOT / "data" / "actual_returns.parquet", index=False)
+    # investable bars, aligned like the target: the return earned from the close of t to t+1
+    wide = prices.pivot(index="Date", columns="Ticker", values="Close").sort_index()
+    bars = pd.DataFrame({b: wide[b].pct_change().shift(-1) for b in BARS if b in wide.columns})
+    bars = bars.loc["2005-01-01":].dropna(how="all").reset_index()
+    bars.to_parquet(ROOT / "data" / "benchmark_returns.parquet", index=False)
     manifest = {"built": str(date.today()), "rows": int(len(actual)),
-                "last_decision_date": str(actual["Date"].max().date()), "files": {}}
+                "last_decision_date": str(actual["Date"].max().date()), "bars": list(bars.columns[1:]), "files": {}}
     for p in [RAW / "sp500_stocks.csv", RAW / "vix.csv", RAW / "treasury_10y.csv",
-              ROOT / "data" / "feature_panel.parquet", ROOT / "data" / "actual_returns.parquet"]:
+              ROOT / "data" / "feature_panel.parquet", ROOT / "data" / "actual_returns.parquet",
+              ROOT / "data" / "benchmark_returns.parquet"]:
         manifest["files"][p.name] = hashlib.sha256(p.read_bytes()).hexdigest()
     (ROOT / "data" / "MANIFEST.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print("actual_returns:", actual.shape, "to", manifest["last_decision_date"])

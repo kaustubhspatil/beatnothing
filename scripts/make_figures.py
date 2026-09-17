@@ -52,7 +52,8 @@ def fig_net_edge(board):
                     if first in en["windows"] and en["meta"]["name"] != "always_long"],
                    key=lambda n: next(en["windows"][first]["net_edge"] for en in board["entries"] if en["meta"]["name"] == n))
     by_name = {en["meta"]["name"]: en["windows"] for en in board["entries"]}
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5.4), sharey=True)
+    has_inv = board.get("investable_bar") is not None
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5.8), sharey=True)
     for ax, (wname, (s, e)) in zip(axes, windows):
         for i, name in enumerate(order):
             r = by_name[name].get(wname)
@@ -61,15 +62,49 @@ def fig_net_edge(board):
             c = GOOD if r["clears_bar"] else (BAD if r["ci_high"] < 0 else MUTED)
             ax.plot([r["ci_low"], r["ci_high"]], [i, i], color=c, lw=2.2, solid_capstyle="round")
             ax.plot(r["net_edge"], i, "o", color=c, ms=7, zorder=3)
+            if has_inv and "edge_vs_investable" in r:      # hollow marker: the same contestant against RSP
+                y = i - 0.28
+                ax.plot([r["ci_low_vs_investable"], r["ci_high_vs_investable"]], [y, y], color=ORANGE, lw=1.2, alpha=0.9)
+                ax.plot(r["edge_vs_investable"], y, "o", mfc="white", mec=ORANGE, mew=1.4, ms=6, zorder=3)
         ax.axvline(0, color=INK, lw=1.0)
         ax.set_title(f"{wname.replace('_', ' ')}: {s} to {e}", pad=8)
     axes[0].set_yticks(np.arange(len(order)))
     axes[0].set_yticklabels([label(n) for n in order])
-    fig.text(0.01, 0.995, "Green would mean the whole interval clears zero; red, the whole interval below it; grey straddles zero. Nothing is green.",
-             fontsize=9.5, color=INK2, va="top")
-    fig.supxlabel("Net Edge = net Sharpe minus the do nothing Sharpe, 95% paired stationary bootstrap", fontsize=10, color=INK2)
-    fig.subplots_adjust(top=0.86, bottom=0.12)
+    note = "Filled: against the universe bar (always long the same 48 names). Green would mean the whole interval clears zero; red, entirely below; grey straddles zero. Nothing is green."
+    if has_inv:
+        note += "\nHollow orange: the same contestant against RSP, the investable equal weight index that still holds the names that died."
+    fig.text(0.01, 0.995, note, fontsize=9.2, color=INK2, va="top")
+    fig.supxlabel("Net Edge = net Sharpe minus the bar's net Sharpe on the same days, 95% paired stationary bootstrap", fontsize=10, color=INK2)
+    fig.subplots_adjust(top=0.84, bottom=0.12)
     fig.savefig(FIG / "net_edge.png")
+    plt.close(fig)
+
+
+def fig_bars(actual, bars):
+    """The two bars side by side: the survivor universe against the investable index."""
+    if bars is None or "RSP" not in bars.columns:
+        return
+    s, e = "2022-01-01", "2026-12-31"
+    a = actual.loc[(actual.index >= s) & (actual.index <= e)]
+    uni = Backtest(a, predictions=pd.DataFrame(1.0, index=a.index, columns=a.columns)).daily_returns
+    rsp = bars["RSP"].reindex(uni.index).fillna(0.0)
+    spy = bars["SPY"].reindex(uni.index).fillna(0.0) if "SPY" in bars.columns else None
+    fig, ax = plt.subplots(figsize=(11, 5))
+    for series, name, color, ls in [(uni, "48 survivor names, equal weight, the universe bar", INK, "--"),
+                                     (rsp, "RSP: every index member, dead ones included", ORANGE, "-"),
+                                     (spy, "SPY: cap weighted index", MUTED, ":")]:
+        if series is None:
+            continue
+        eq = (1 + series).cumprod()
+        ax.plot(eq.index, eq.values, color=color, lw=2.0 if name.startswith("48") else 1.6, ls=ls)
+        ax.annotate(f"{name}  (Sharpe {series.mean() / series.std() * np.sqrt(252):+.2f})", xy=(eq.index[-1], eq.values[-1]),
+                    xytext=(6, 0), textcoords="offset points", fontsize=8.8, va="center", color=color)
+    ax.axvline(pd.Timestamp("2026-01-01"), color=GRID, lw=1.2)
+    ax.text(pd.Timestamp("2026-01-05"), ax.get_ylim()[1] * 0.98, "2026, post cutoff", fontsize=8.5, color=INK2, va="top")
+    ax.set_xlim(uni.index[0], uni.index[-1] + pd.Timedelta(days=430))
+    ax.set_ylabel("growth of $1")
+    ax.set_title("Two bars: the universe chosen with hindsight against the index that could not choose")
+    fig.savefig(FIG / "two_bars.png")
     plt.close(fig)
 
 
@@ -155,9 +190,12 @@ if __name__ == "__main__":
     FIG.mkdir(parents=True, exist_ok=True)
     board = json.loads((LEADERBOARD / "leaderboard.json").read_text(encoding="utf-8"))
     actual = load_actual(ROOT / "data" / "actual_returns.parquet")
+    from beatnothing.leaderboard import load_bars
+    bars = load_bars(ROOT / "data" / "benchmark_returns.parquet")
     fig_net_edge(board)
     fig_cost_inversion(board)
     fig_forward(board, actual)
+    fig_bars(actual, bars)
     from beatnothing.universe import PIT_DIR
     gone = fig_survivorship(available=set(actual.columns) | {
         # names that left the index but still trade under the same ticker (checked 2026 09 17)
