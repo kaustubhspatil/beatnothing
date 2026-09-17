@@ -1,0 +1,11 @@
+{
+  "name": "lightgbm_mse",
+  "kind": "predictions",
+  "training_cutoff": "2018-12-31",
+  "validation": "2019-01-01 to 2021-12-31",
+  "registered": "2026-09-17",
+  "description": "LightGBM regressor on the same 17 features, MSE objective, early stopped on 2019 to 2021 validation (stopped after 3 trees). Trained 2026 09 17 on data to 2018.",
+  "universe": "48 large cap US stocks (capstone universe)",
+  "model_sha256": "03c10ce18af1d49b4c1aabc027dc7bdc5d7b4aec583b82e14eeba2878345ad2f",
+  "model_file": "lgbm_baseline.pkl"
+}

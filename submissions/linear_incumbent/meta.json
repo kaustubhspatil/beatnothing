@@ -1,0 +1,11 @@
+{
+  "name": "linear_incumbent",
+  "kind": "predictions",
+  "training_cutoff": "2018-12-31",
+  "validation": "2019-01-01 to 2021-12-31",
+  "registered": "2026-09-17",
+  "description": "Ordinary least squares on the 17 trailing features, the stand in for a rules based desk signal. Frozen 2026 08 20.",
+  "universe": "48 large cap US stocks (capstone universe)",
+  "model_sha256": "8418fb209daa3810e04e6e97a08c85d326682ef0ee73438a39f6c8900c3eaa46",
+  "model_file": "linear_baseline.pkl"
+}
