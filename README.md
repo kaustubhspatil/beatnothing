@@ -27,7 +27,7 @@ pip install beatnothing
 <table>
 <tr><th>Rule</th><th>What it means in practice</th></tr>
 <tr><td><strong>One engine</strong></td><td>Predictions become positions by one fixed rule: equal weight long every name with a positive value, cash otherwise. Weights are used as given, long only, no leverage. Nobody gets a custom backtester.</td></tr>
-<tr><td><strong>One bar</strong></td><td>Always long, equal weight, same universe, same days, same costs. Not the S&amp;P 500, not a risk free rate. The thing you would earn with zero skill.</td></tr>
+<tr><td><strong>One bar, and a second one that could not choose</strong></td><td>The universe bar: always long, equal weight, same universe, same days, same costs. The thing you would earn with zero skill on the names you picked. Beside it, the investable bar: RSP, the equal weight S&amp;P 500 ETF, which holds every index member by construction, dead ones included, and cannot have picked its universe with hindsight. The gap between the two bars is what picking the universe was worth.</td></tr>
 <tr><td><strong>Costs on every trade</strong></td><td>10 bps per unit of turnover, day one included. Gross and 20 bps numbers sit beside the net number so you can see who only wins for free.</td></tr>
 <tr><td><strong>One score</strong></td><td>Net Edge = your net Sharpe minus the bar's net Sharpe on the same days, with a 95% paired stationary block bootstrap interval. You clear the bar only when the whole interval is above zero.</td></tr>
 <tr><td><strong>Frozen means frozen</strong></td><td>Every submission records the sha256 of its model files and a registration date. A monthly job pulls new prices and rescores everything on the days that arrived after registration. Signals never change; only the calendar does.</td></tr>
@@ -39,21 +39,27 @@ Sealed window 2022 to 2025, 48 large cap US stocks, net of 10 bps. Full detail w
 drawdowns, exposure and dollars in [`leaderboard/LEADERBOARD.md`](leaderboard/LEADERBOARD.md).
 
 <table>
-<tr><th>Contestant</th><th>Net Edge</th><th>95% interval</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Turnover a year</th></tr>
-<tr><td>Always long, the bar</td><td>0.00</td><td></td><td>+0.88</td><td>+0.88</td><td>0.3×</td></tr>
-<tr><td>Feedforward network</td><td>−0.03</td><td>[−0.06, −0.01]</td><td>+0.85</td><td>+0.88</td><td>4.3×</td></tr>
-<tr><td>Cost aware network, 10 bps term</td><td>−0.04</td><td>[−0.10, +0.01]</td><td>+0.83</td><td>+0.87</td><td>2.9×</td></tr>
-<tr><td>LightGBM, MSE objective</td><td>−0.14</td><td>[−0.45, +0.09]</td><td>+0.74</td><td>+0.79</td><td>7.2×</td></tr>
-<tr><td>LSTM, 60 day windows</td><td>−0.53</td><td>[−1.07, −0.10]</td><td>+0.35</td><td>+0.62</td><td>43×</td></tr>
-<tr><td>Cost aware network, no cost term</td><td>−0.70</td><td>[−1.33, −0.09]</td><td>+0.18</td><td>+0.53</td><td>11.5×</td></tr>
-<tr><td>1D CNN, 60 day windows</td><td>−0.93</td><td>[−1.62, −0.32]</td><td>−0.05</td><td>+1.08</td><td>265×</td></tr>
-<tr><td>Linear regression, the incumbent</td><td>−1.17</td><td>[−1.85, −0.64]</td><td>−0.30</td><td>+0.51</td><td>159×</td></tr>
-<tr><td>Kronos small, zero shot</td><td>−1.67</td><td>[−2.13, −1.28]</td><td>−0.79</td><td>+0.52</td><td>241×</td></tr>
+<tr><th>Contestant</th><th>Net Edge</th><th>95% interval</th><th>Edge vs RSP</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Turnover a year</th></tr>
+<tr><td>Always long, the universe bar</td><td>0.00</td><td></td><td>+0.44 [+0.19, +0.76]</td><td>+0.88</td><td>+0.88</td><td>0.3×</td></tr>
+<tr><td>Feedforward network</td><td>−0.03</td><td>[−0.06, −0.01]</td><td>+0.41 [+0.17, +0.72]</td><td>+0.85</td><td>+0.88</td><td>4.3×</td></tr>
+<tr><td>Cost aware network, 10 bps term</td><td>−0.04</td><td>[−0.10, +0.01]</td><td>+0.40 [+0.15, +0.72]</td><td>+0.83</td><td>+0.87</td><td>2.9×</td></tr>
+<tr><td>LightGBM, MSE objective</td><td>−0.14</td><td>[−0.45, +0.09]</td><td>+0.30 [−0.13, +0.72]</td><td>+0.74</td><td>+0.79</td><td>7.2×</td></tr>
+<tr><td>LSTM, 60 day windows</td><td>−0.53</td><td>[−1.07, −0.10]</td><td>−0.08 [−0.61, +0.44]</td><td>+0.35</td><td>+0.62</td><td>43×</td></tr>
+<tr><td>Cost aware network, no cost term</td><td>−0.70</td><td>[−1.33, −0.09]</td><td>−0.26 [−0.89, +0.35]</td><td>+0.18</td><td>+0.53</td><td>11.5×</td></tr>
+<tr><td>1D CNN, 60 day windows</td><td>−0.93</td><td>[−1.62, −0.32]</td><td>−0.49 [−1.17, +0.16]</td><td>−0.05</td><td>+1.08</td><td>265×</td></tr>
+<tr><td>Linear regression, the incumbent</td><td>−1.17</td><td>[−1.85, −0.64]</td><td>−0.73 [−1.42, −0.10]</td><td>−0.30</td><td>+0.51</td><td>159×</td></tr>
+<tr><td>Kronos small, zero shot</td><td>−1.67</td><td>[−2.13, −1.28]</td><td>−1.23 [−1.71, −0.79]</td><td>−0.79</td><td>+0.52</td><td>241×</td></tr>
 </table>
 
+Read the two edge columns together. Three contestants clear RSP on the sealed window, and
+so does the universe bar itself, by the same margin. They are not beating the index; the
+universe is. A contestant that clears the investable bar while failing the universe bar
+has demonstrated one thing only: that its universe was chosen with hindsight.
+
 On the 176 trading days of 2026 that none of the frozen models had ever seen, the order
-reproduces and every interval widens to include zero. Eight months cannot separate a
-network from a bar. The leaderboard says so instead of ranking noise.
+reproduces, every interval widens to include zero, and the two bars converge (RSP 1.30,
+universe bar 1.44, gap inside the noise). Eight months cannot separate a network from a
+bar. The leaderboard says so instead of ranking noise.
 
 ## What the first season taught us
 
@@ -94,9 +100,24 @@ report that states, in numbers, what a free price source can no longer supply. F
 sealed window: 94 of the 505 members on the last day of 2021 left the index, and 47 of
 those have no prices on Yahoo Finance any more, both 2023 bank failures among them.
 That is the residual survivorship gap in this first season, and it is stated rather
-than hidden. A probe of a paid archive found 45 of the 47 in its delisted index and the other two
-renamed and still trading, so season two can run on the universe that did not know
-the future once that archive is licensed.
+than hidden.
+
+<p align="center">
+  <img src="leaderboard/figures/two_bars.png" width="900" alt="Growth of one dollar: the 48 survivor universe bar against RSP and SPY, 2022 to 2026">
+</p>
+
+It is also priced. RSP, the equal weight S&amp;P 500 ETF, is the same idea as the
+universe bar applied to the whole index, and it could not pick its members with
+hindsight. On the sealed window the 48 name bar earned a Sharpe of 0.88 against 0.44 for
+RSP, an edge of +0.44 with an interval of [+0.19, +0.76]. Part of that is a size effect,
+since the largest names ran hardest in 2023 to 2025, so read it as an upper bound on
+survivorship and a fair measure of hindsight in universe selection. In 2026, where no
+hindsight was possible, the two bars sit 0.14 apart with an interval that spans a full
+Sharpe point in each direction. Every contestant now carries an edge against both bars.
+
+A probe of a paid archive found 45 of the 47 vanished names in its delisted index and the
+other two renamed and still trading, so season two can run on the universe that did not
+know the future.
 
 ## Enter a contestant
 
@@ -135,7 +156,7 @@ python scripts/make_figures.py
 
 ## Roadmap
 
-1. **The point in time universe.** Roughly 500 names a day, including the ones that later died, from an archive that keeps delisted histories. This turns the bar honest and puts a number on how much survivorship flattered season one.
+1. **The point in time universe.** Roughly 500 names a day, including the ones that later died, from an archive that keeps delisted histories. Two probe scripts are in `scripts/`, one for a free tier and one for a paid archive; whichever returns the dead names first wins. This turns the universe bar into the investable bar and lets a contestant earn edge by avoiding disasters, which no survivor universe can reward.
 2. **Sharper statistics.** The studentized bootstrap of Ledoit and Wolf for Sharpe differences, and a family wise correction so that a crowded leaderboard cannot clear the bar by luck.
 3. **A long short engine** with a borrow cost, so that ranking signals can be judged on the book they were built for.
 4. **An LLM agent contestant**, in the spirit of StockBench, under the same costs and the same bar.
@@ -162,7 +183,7 @@ where their training is documented notebook by notebook.
 
 Point in time membership: [fja05680/sp500](https://github.com/fja05680/sp500), MIT.
 Kronos: Shi et al., *Kronos: A Foundation Model for the Language of Financial Markets*,
-AAAI 2026, [shiyu-coder/Kronos](https://github.com/shiyu-coder/Kronos), MIT. Stationary
+AAAI 2026, [the Kronos repository](https://github.com/shiyu-coder/Kronos), MIT. Stationary
 bootstrap: Politis and Romano (1994). Probabilistic Sharpe ratio: Bailey and Lopez de
 Prado (2012). Sharpe standard error: Lo (2002). Prices from Yahoo Finance through
 yfinance; the snapshot hash is in `data/MANIFEST.json`.

@@ -16,10 +16,11 @@ import sys
 def _score(args) -> int:
     from .leaderboard import score_signal
     res = score_signal(args.signal, args.actual, kind=args.kind, start=args.start, end=args.end,
-                       n_boot=args.n_boot, cost_bps=args.cost_bps)
+                       n_boot=args.n_boot, cost_bps=args.cost_bps, bars_path=args.bars)
     keys = ["window", "days", "net_edge", "ci_low", "ci_high", "clears_bar", "net_sharpe", "bar_sharpe",
-            "gross_sharpe", "net_sharpe_20bps", "sharpe_se", "psr_vs_zero", "max_drawdown", "annual_turnover",
-            "avg_exposure", "dollar_pnl"]
+            "edge_vs_investable", "ci_low_vs_investable", "ci_high_vs_investable", "clears_investable",
+            "investable_sharpe", "gross_sharpe", "net_sharpe_20bps", "sharpe_se", "psr_vs_zero",
+            "max_drawdown", "annual_turnover", "avg_exposure", "dollar_pnl"]
     print(json.dumps({k: res[k] for k in keys if k in res}, indent=2, default=str))
     verdict = "clears the bar" if res["clears_bar"] else "does not clear the bar"
     print(f"\nNet Edge {res['net_edge']:+.2f} [{res['ci_low']:+.2f}, {res['ci_high']:+.2f}]: {verdict}.", file=sys.stderr)
@@ -54,6 +55,7 @@ def main(argv=None) -> int:
     s.add_argument("--end", default=None)
     s.add_argument("--n-boot", type=int, default=2000)
     s.add_argument("--cost-bps", type=float, default=10.0)
+    s.add_argument("--bars", default=None, help="parquet with Date and RSP columns to also score against the investable bar")
     s.set_defaults(func=_score)
 
     lb = sub.add_parser("leaderboard", help="score every submission under a benchmark root")
