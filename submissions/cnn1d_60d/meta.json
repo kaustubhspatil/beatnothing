@@ -1,0 +1,11 @@
+{
+  "name": "cnn1d_60d",
+  "kind": "predictions",
+  "training_cutoff": "2018-12-31",
+  "validation": "2019-01-01 to 2021-12-31",
+  "registered": "2026-09-17",
+  "description": "Three block 1D CNN over 60 day windows. Frozen 2026 08 20.",
+  "universe": "48 large cap US stocks (capstone universe)",
+  "model_sha256": "e4bced9050d25255d6d8c843dfaddaef5b3426af7d55286aa841bfe06c37507f",
+  "model_file": "cnn1d_60d.pt"
+}

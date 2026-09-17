@@ -1,0 +1,9 @@
+{
+  "name": "always_long",
+  "kind": "predictions",
+  "training_cutoff": "2018-12-31",
+  "validation": "2019-01-01 to 2021-12-31",
+  "registered": "2026-09-17",
+  "description": "The do nothing bar itself: long every name every day. Anything that cannot beat this has no edge.",
+  "universe": "48 large cap US stocks (capstone universe)"
+}

@@ -1,0 +1,29 @@
+name: forward track
+# Once a month: pull the latest prices, extend the realised returns, re score every
+# registered submission on the days that arrived after its registration date, and
+# commit the refreshed leaderboard. Frozen signals never change; only the calendar does.
+on:
+  schedule:
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+jobs:
+  rescore:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[data,figures]"
+      - run: python scripts/download_data.py
+      - run: python -m beatnothing.leaderboard
+      - run: python scripts/make_figures.py
+      - name: commit
+        run: |
+          git config user.name "beatnothing bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/actual_returns.parquet data/feature_panel.parquet data/MANIFEST.json leaderboard/
+          git commit -m "Forward track: rescore on prices through $(date +%F)" || echo "nothing to commit"
+          git push

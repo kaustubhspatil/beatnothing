@@ -1,0 +1,11 @@
+{
+  "name": "ffnn_128_64_32",
+  "kind": "predictions",
+  "training_cutoff": "2018-12-31",
+  "validation": "2019-01-01 to 2021-12-31",
+  "registered": "2026-09-17",
+  "description": "Feedforward network 128 64 32 trained on MSE with early stopping, the capstone's selected model. Frozen 2026 08 20.",
+  "universe": "48 large cap US stocks (capstone universe)",
+  "model_sha256": "05154bce2f33ccfdb396e8f7a47dd8eb70e8b8a37bb8faa041262968652040b6",
+  "model_file": "ffnn_best.pt"
+}

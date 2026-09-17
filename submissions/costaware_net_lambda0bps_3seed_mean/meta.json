@@ -1,0 +1,30 @@
+{
+  "name": "costaware_net_lambda0bps_3seed_mean",
+  "kind": "weights",
+  "training_cutoff": "2018-12-31",
+  "validation": "2019-01-01 to 2021-12-31",
+  "registered": "2026-09-17",
+  "description": "Cost aware end to end network: outputs weights, trained to maximise net Sharpe over 126 day windows with a turnover penalty of 0 bps. Mean of three seeds (42, 43, 44). Trained 2026 09 17.",
+  "universe": "48 large cap US stocks (capstone universe)",
+  "model_sha256": {
+    "costaware_lam0_seed42": "54f35d69a893dc1e26154c7c3667f3cf12bdb50662e04f418dfbcc6e69720a19",
+    "costaware_lam0_seed43": "19800adf0d7bdfee62fe0f78fb1a66d56ee5bac76287a0a67ea785d0efe6c43c",
+    "costaware_lam0_seed44": "c614f7856be972ec0abfd5d146b427ce231ecd5e8d0f482f9f204dccfa8e5107"
+  },
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "lambda_bps": 0,
+  "per_seed_test_net_sharpe": [
+    -0.119,
+    0.266,
+    0.038
+  ],
+  "per_seed_fwd_net_sharpe": [
+    1.431,
+    1.399,
+    0.92
+  ]
+}

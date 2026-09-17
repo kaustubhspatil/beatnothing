@@ -1,0 +1,14 @@
+{
+  "name": "kronos_small_zero_shot",
+  "kind": "predictions",
+  "training_cutoff": "pretrained by its authors (Kronos, AAAI 2026); never trained on this data",
+  "registered": "2026-09-17",
+  "universe": "48 large cap US stocks (capstone universe)",
+  "description": "Kronos small (24.7M parameters, MIT) zero shot: reads the trailing 400 daily OHLCV bars of each stock and generates the next bar; the signal is the predicted close over the last close minus one, averaged over three samples (T=1.0, top_p=0.9). Weights NeoQuasar/Kronos-small and NeoQuasar/Kronos-Tokenizer-base from Hugging Face; script in contestants/kronos_zero_shot.py.",
+  "weights_source": {
+    "model": "NeoQuasar/Kronos-small",
+    "tokenizer": "NeoQuasar/Kronos-Tokenizer-base"
+  },
+  "context_bars": 400,
+  "samples": 3
+}
