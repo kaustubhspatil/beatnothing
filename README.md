@@ -1,130 +1,170 @@
 # beatnothing
 
+[![tests](https://github.com/kaustubhspatil/beatnothing/actions/workflows/tests.yml/badge.svg)](https://github.com/kaustubhspatil/beatnothing/actions/workflows/tests.yml)
+[![PyPI](https://img.shields.io/pypi/v/beatnothing)](https://pypi.org/project/beatnothing/)
+[![license](https://img.shields.io/github/license/kaustubhspatil/beatnothing)](LICENSE)
+
 **Can your model beat doing nothing, after costs, without knowing the future?**
 
-A small, reproducible benchmark for daily equity signals. One engine, one bar, one
-score. The bar is the dumbest possible strategy: hold every stock in the universe at
-equal weight and never think again. The score is the **Net Edge**, your net Sharpe
-minus that bar's net Sharpe on the same days, with a paired bootstrap interval so
-that a lucky year cannot pose as skill.
+Every quant paper has a chart that goes up and to the right. This benchmark asks that
+chart one question. It hands the same prices to the dumbest strategy imaginable, hold
+everything at equal weight and never think again, charges both of them the same fee on
+every trade, refuses to let either one see tomorrow, and measures the gap with an error
+bar. That gap is the **Net Edge**. Nine contestants have tried so far, from an ordinary
+linear regression to a 2026 financial foundation model with a hundred times the
+parameters. **None of them clears the bar.**
 
 <p align="center">
-  <img src="leaderboard/figures/net_edge.png" width="880" alt="Net Edge with 95% intervals for every contestant on the sealed window and on 2026 to date">
+  <img src="leaderboard/figures/net_edge.png" width="900" alt="Net Edge with 95% intervals for every contestant, on the sealed 2022 to 2025 window and on 2026 to date">
 </p>
-
-Nine contestants so far, from an ordinary linear model to a 2026 financial foundation
-model, and **not one of them clears the bar**, on the sealed 2022 to 2025 window or on
-the 176 trading days of 2026 that none of the frozen models had ever seen. The full
-table with intervals, turnover, drawdowns and dollars is in
-[`leaderboard/LEADERBOARD.md`](leaderboard/LEADERBOARD.md).
-
-## Why this exists
-
-Three things go wrong in almost every published machine learning trading result, and
-the 2026 literature is now saying so out loud: leakage introduced by the evaluation
-protocol rather than the model, costs that are reported gross or not at all, and a
-universe chosen with hindsight. Recent benchmarks address one of these each, and most
-of them run on CRSP data that nobody outside a university can rerun. This one runs on
-a laptop with free data and addresses all three, then adds the thing that actually
-settles arguments: a forward track where frozen signals meet days that did not exist
-when they were registered.
-
-<table>
-<tr><th>Failure</th><th>What the harness does about it</th></tr>
-<tr><td>Costs</td><td>Every contestant pays 10 bps on every unit of turnover, day one included. Gross and 20 bps numbers sit beside the net number so you can see who only wins for free.</td></tr>
-<tr><td>Leakage</td><td>Shipped leak canaries (a model that peeks at t+1, an off by one feature shift, a hindsight universe) must score absurdly well in your pipeline, or your pipeline is broken. A truncation test proves features are trailing only by deleting the future and recomputing.</td></tr>
-<tr><td>Hindsight universe</td><td>Point in time S&P 500 membership from 1996 to 2026 and a coverage report that states, in numbers, what a free price source can no longer supply. For the sealed window: 94 of the 505 members on 2021 12 31 left the index, and 47 of those, including both 2023 bank failures, have no prices on Yahoo Finance any more.</td></tr>
-<tr><td>Noise posing as alpha</td><td>Net Edge carries a 95% stationary block bootstrap interval on the paired daily difference. A contestant clears the bar only when the whole interval is above zero. On 176 days the interval is wide, and the leaderboard says so instead of ranking noise.</td></tr>
-<tr><td>Frozen means frozen</td><td>Every submission records the sha256 of its model files and a registration date. A monthly GitHub Action pulls new prices and rescores everything on the days that arrived after registration.</td></tr>
-</table>
-
-## What the first leaderboard says
-
-Sealed window 2022 to 2025, 48 large cap US stocks, net of 10 bps:
-
-* **Costs reorder the field.** A linear model that trades 159 times its capital a year has a gross Sharpe of 0.51 and a net Sharpe of minus 0.30. A 1D CNN goes from 1.08 gross to minus 0.05 net. The order of contestants at 0 bps is not the order at 10 bps.
-* **The MSE optimum is nearly "always long".** LightGBM, early stopped honestly on validation loss, stops after three trees and holds 47 of 48 names. Squared error on daily returns rewards predicting the drift, and the drift is the bar.
-* **A cost aware objective fixes turnover, not alpha.** A network trained end to end on net Sharpe with a 10 bps turnover term trades 3 times a year instead of 12 and lands within 0.04 of the bar across three seeds. Remove the cost term and the same architecture trades four times as much and loses 0.7 of Sharpe.
-* **The foundation model inverts too.** Kronos small, used zero shot, has a gross Sharpe of 0.52 and a net Sharpe of minus 0.79, with a 53% drawdown, because it flips positions 241 times a year. A hundred times the parameters of the feedforward network, pretrained on 12 billion bars, and the same cost arithmetic as a linear regression.
-* **Nothing clears the bar.** The best learned contestant, the feedforward network, sits at a Net Edge of minus 0.03 with an interval of [minus 0.06, minus 0.01]: measurably, slightly worse than doing nothing. The cost aware network matches the bar's Sharpe with half the exposure and half the drawdown, which makes it the bar delevered, not alpha.
-
-2026 to date (176 days, models frozen in August 2026 on data ending December 2025):
-the ranking reproduces. The incumbent linear signal is flat after costs, the
-feedforward network trails the bar by 0.08, the cost aware network matches it, and the
-high turnover models fall behind. All intervals include zero: eight months cannot
-separate anything from anything, which is itself the finding.
-
-<p align="center">
-  <img src="leaderboard/figures/cost_inversion.png" width="880" alt="Gross versus net Sharpe for every contestant">
-</p>
-
-## Contestants
-
-<table>
-<tr><th>Contestant</th><th>What it is</th><th>Trained</th></tr>
-<tr><td>always long</td><td>the bar</td><td>never</td></tr>
-<tr><td>linear incumbent</td><td>OLS on 17 trailing technical features</td><td>2005 to 2018</td></tr>
-<tr><td>feedforward NN</td><td>128 64 32, MSE, early stopped</td><td>2005 to 2018</td></tr>
-<tr><td>LSTM 60d</td><td>two layers over 60 day windows</td><td>2005 to 2018</td></tr>
-<tr><td>1D CNN 60d</td><td>three conv blocks over 60 day windows</td><td>2005 to 2018</td></tr>
-<tr><td>LightGBM (MSE)</td><td>gradient boosted trees, early stopped on validation</td><td>2005 to 2018</td></tr>
-<tr><td>Kronos small, zero shot</td><td>24.7M parameter financial foundation model (AAAI 2026), 400 bar context, no training on this data at all</td><td>pretrained by its authors</td></tr>
-<tr><td>cost aware net, 10 bps term</td><td>weights out, trained on net Sharpe over 126 day windows, mean of 3 seeds</td><td>2005 to 2018</td></tr>
-<tr><td>cost aware net, no cost term</td><td>the same with the turnover penalty removed (ablation)</td><td>2005 to 2018</td></tr>
-</table>
-
-The first five come frozen from the
-[deep learning equity signal capstone](https://github.com/kaustubhspatil/sp500-quantitative-deep-learning),
-where their training is documented notebook by notebook. Their sha256 hashes are in
-each `meta.json`.
-
-## Use it
 
 ```bash
-pip install -e ".[data,figures,dev]"
-pytest -q                                   # engine invariants, canaries fire, scoring math
-python scripts/download_data.py             # fresh prices, features, realised returns, manifest
-python -m beatnothing.leaderboard           # score every submission on every window
-python scripts/make_figures.py
+pip install beatnothing
 ```
 
-Score your own signal in four lines:
+## The rules of the game
+
+<table>
+<tr><th>Rule</th><th>What it means in practice</th></tr>
+<tr><td><strong>One engine</strong></td><td>Predictions become positions by one fixed rule: equal weight long every name with a positive value, cash otherwise. Weights are used as given, long only, no leverage. Nobody gets a custom backtester.</td></tr>
+<tr><td><strong>One bar</strong></td><td>Always long, equal weight, same universe, same days, same costs. Not the S&amp;P 500, not a risk free rate. The thing you would earn with zero skill.</td></tr>
+<tr><td><strong>Costs on every trade</strong></td><td>10 bps per unit of turnover, day one included. Gross and 20 bps numbers sit beside the net number so you can see who only wins for free.</td></tr>
+<tr><td><strong>One score</strong></td><td>Net Edge = your net Sharpe minus the bar's net Sharpe on the same days, with a 95% paired stationary block bootstrap interval. You clear the bar only when the whole interval is above zero.</td></tr>
+<tr><td><strong>Frozen means frozen</strong></td><td>Every submission records the sha256 of its model files and a registration date. A monthly job pulls new prices and rescores everything on the days that arrived after registration. Signals never change; only the calendar does.</td></tr>
+</table>
+
+## Scoreboard, first season
+
+Sealed window 2022 to 2025, 48 large cap US stocks, net of 10 bps. Full detail with
+drawdowns, exposure and dollars in [`leaderboard/LEADERBOARD.md`](leaderboard/LEADERBOARD.md).
+
+<table>
+<tr><th>Contestant</th><th>Net Edge</th><th>95% interval</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Turnover a year</th></tr>
+<tr><td>Always long, the bar</td><td>0.00</td><td></td><td>+0.88</td><td>+0.88</td><td>0.3×</td></tr>
+<tr><td>Feedforward network</td><td>−0.03</td><td>[−0.06, −0.01]</td><td>+0.85</td><td>+0.88</td><td>4.3×</td></tr>
+<tr><td>Cost aware network, 10 bps term</td><td>−0.04</td><td>[−0.10, +0.01]</td><td>+0.83</td><td>+0.87</td><td>2.9×</td></tr>
+<tr><td>LightGBM, MSE objective</td><td>−0.14</td><td>[−0.45, +0.09]</td><td>+0.74</td><td>+0.79</td><td>7.2×</td></tr>
+<tr><td>LSTM, 60 day windows</td><td>−0.53</td><td>[−1.07, −0.10]</td><td>+0.35</td><td>+0.62</td><td>43×</td></tr>
+<tr><td>Cost aware network, no cost term</td><td>−0.70</td><td>[−1.33, −0.09]</td><td>+0.18</td><td>+0.53</td><td>11.5×</td></tr>
+<tr><td>1D CNN, 60 day windows</td><td>−0.93</td><td>[−1.62, −0.32]</td><td>−0.05</td><td>+1.08</td><td>265×</td></tr>
+<tr><td>Linear regression, the incumbent</td><td>−1.17</td><td>[−1.85, −0.64]</td><td>−0.30</td><td>+0.51</td><td>159×</td></tr>
+<tr><td>Kronos small, zero shot</td><td>−1.67</td><td>[−2.13, −1.28]</td><td>−0.79</td><td>+0.52</td><td>241×</td></tr>
+</table>
+
+On the 176 trading days of 2026 that none of the frozen models had ever seen, the order
+reproduces and every interval widens to include zero. Eight months cannot separate a
+network from a bar. The leaderboard says so instead of ranking noise.
+
+## What the first season taught us
+
+<p align="center">
+  <img src="leaderboard/figures/cost_inversion.png" width="900" alt="Gross versus net Sharpe for every contestant on the sealed window">
+</p>
+
+* **Costs reorder the field.** The 1D CNN has the highest gross Sharpe of anything, 1.08, and a negative net Sharpe, because it turns the book over 265 times a year. Gross rank is not net rank. Papers that report gross numbers are reporting a different sport.
+* **The MSE optimum is nearly always long.** LightGBM, early stopped honestly on validation loss, stops after three trees and holds 47 of 48 names. Squared error on daily returns is minimised by predicting the drift, and the drift is the bar wearing a different hat.
+* **A foundation model obeys the same arithmetic as a linear regression.** Kronos small, pretrained on 12 billion bars across 45 exchanges and used zero shot, has a gross Sharpe of 0.52 and a net Sharpe of minus 0.79, with a 53% drawdown, because it flips positions 241 times a year. A hundred times the parameters of the feedforward network; the same cost inversion as the incumbent.
+* **A cost aware objective repairs turnover, not alpha.** A network trained end to end on net Sharpe with a 10 bps turnover term trades three times a year instead of twelve and lands within 0.05 of the bar across three seeds, holding half the book in cash. Remove the cost term and the identical architecture loses 0.7 of Sharpe to fees. Given the true objective, the optimiser finds the bar.
+
+## Verify your verifier
+
+Most leakage is not in the model. It is in the evaluation. So the harness ships
+contestants that cheat on purpose, and you run them through *your* pipeline first:
+
+```python
+from beatnothing import Backtest, peek, off_by_one, hindsight_universe
+Backtest(actual, predictions=peek(actual)).stats()["net_sharpe"]      # tomorrow's return as today's signal: absurd, or your pipeline is broken
+Backtest(actual, predictions=hindsight_universe(actual, 10)).stats()  # the ten best names of the whole window, chosen at the start
+```
+
+If a canary does not score absurdly well, your pipeline is not measuring what you think.
+The `truncation_test` in the same module proves a feature builder is trailing only by
+deleting the future, recomputing, and demanding byte identical rows.
+
+## The universe knew the future
+
+<p align="center">
+  <img src="leaderboard/figures/survivorship_gap.png" width="900" alt="Members on 31 December 2021, how many left the index, and how many no longer have prices">
+</p>
+
+"The current S&amp;P 500 constituents" is a list of companies that survived. The
+package ships point in time membership from 1996 to 2026 (`beatnothing members
+2008-09-15` prints who was actually in the index on the Lehman weekend) and a coverage
+report that states, in numbers, what a free price source can no longer supply. For the
+sealed window: 94 of the 505 members on the last day of 2021 left the index, and 47 of
+those have no prices on Yahoo Finance any more, both 2023 bank failures among them.
+That is the residual survivorship gap in this first season, and it is stated rather
+than hidden. A probe of a paid archive found 45 of the 47 in its delisted index and the other two
+renamed and still trading, so season two can run on the universe that did not know
+the future once that archive is licensed.
+
+## Enter a contestant
+
+A submission is a folder with a signal file and a metadata file; the engine does the
+rest. Read [`contestants/README.md`](contestants/README.md), then open a pull request
+with `submissions/<name>/`. Two reference scripts show the full path from raw prices to
+a submission: a pretrained foundation model used without training, and a network
+trained end to end on net Sharpe with three seeds.
+
+## Use it as a library, or from the shell
 
 ```python
 from beatnothing import Backtest, net_edge
-from beatnothing.leaderboard import load_actual
+from beatnothing.leaderboard import load_actual, bar_returns
 actual = load_actual("data/actual_returns.parquet")          # dates x tickers, next day returns
 mine = Backtest(actual, predictions=my_predictions)           # or weights=my_weights
-bar = Backtest(actual, predictions=actual * 0 + 1)            # always long, same days, same costs
-print(net_edge(mine.daily_returns, bar.daily_returns))       # net edge, interval, clears_bar
+print(net_edge(mine.daily_returns, bar_returns(actual)))     # net edge, interval, clears_bar
 ```
 
-To enter the leaderboard, read [`contestants/README.md`](contestants/README.md) and open
-a pull request with a `submissions/<name>/` folder.
+```bash
+beatnothing score my_signal.parquet --actual data/actual_returns.parquet
+beatnothing members 2020-03-16
+beatnothing leaderboard --root .
+```
+
+To rebuild everything from scratch:
+
+```bash
+git clone https://github.com/kaustubhspatil/beatnothing && cd beatnothing
+pip install -e ".[data,figures,dev]"
+pytest -q
+python scripts/download_data.py          # prices, features, realised returns, manifest
+beatnothing leaderboard
+python scripts/make_figures.py
+```
+
+## Roadmap
+
+1. **The point in time universe.** Roughly 500 names a day, including the ones that later died, from an archive that keeps delisted histories. This turns the bar honest and puts a number on how much survivorship flattered season one.
+2. **Sharper statistics.** The studentized bootstrap of Ledoit and Wolf for Sharpe differences, and a family wise correction so that a crowded leaderboard cannot clear the bar by luck.
+3. **A long short engine** with a borrow cost, so that ranking signals can be judged on the book they were built for.
+4. **An LLM agent contestant**, in the spirit of StockBench, under the same costs and the same bar.
+5. **A year of forward track.** The workflow is armed; the calendar does the rest.
 
 ## Honest limits
 
-* **The universe is a survivor universe.** The 48 names were chosen in August 2026 from
-  the then current index. Ten of them joined the index after 2005. This flatters every
-  contestant and the bar equally, so Net Edge survives it, but absolute numbers do not.
-  The point in time module and the coverage report exist so the next version can run on
-  the true membership; that needs a price source that still carries delisted names.
-* **Costs are a flat 10 bps.** No market impact, no borrow, no slippage that grows with
-  size. It is the friction a small book pays, which is the honest scale of a laptop
-  benchmark.
-* **Long or flat only.** No shorting, no leverage. A long short signal can be evaluated
-  by submitting weights for the long book only, or by extending the engine, which is a
-  welcome pull request.
-* **Eight months is not evidence.** The forward track exists to accumulate it. Check
-  back in a year.
+* The season one universe is a survivor universe: 48 names chosen in August 2026, ten of which joined the index after 2005. It flatters every contestant and the bar equally, so Net Edge survives it. Absolute numbers do not.
+* Costs are a flat 10 bps. No market impact, no borrow, no slippage that grows with size. It is the friction a small book pays.
+* Long or flat only, no leverage.
+* Eight months is not evidence. Check back in a year.
 
-## Credits and sources
+## Cite
 
-Point in time membership: [fja05680/sp500](https://github.com/fja05680/sp500) (MIT).
+```
+Patil, K. (2026). beatnothing: a net of cost benchmark for daily equity signals. https://github.com/kaustubhspatil/beatnothing
+```
+
+A `CITATION.cff` is included. The first five contestants come frozen from the
+[deep learning equity signal capstone](https://github.com/kaustubhspatil/sp500-quantitative-deep-learning),
+where their training is documented notebook by notebook.
+
+## Credits
+
+Point in time membership: [fja05680/sp500](https://github.com/fja05680/sp500), MIT.
 Kronos: Shi et al., *Kronos: A Foundation Model for the Language of Financial Markets*,
-AAAI 2026, [shiyu-coder/Kronos](https://github.com/shiyu-coder/Kronos) (MIT). The
-stationary bootstrap is Politis and Romano (1994); the probabilistic Sharpe ratio is
-Bailey and Lopez de Prado (2012); the Sharpe standard error is Lo (2002). Prices from
-Yahoo Finance through yfinance; the snapshot hash is in `data/MANIFEST.json`.
+AAAI 2026, [shiyu-coder/Kronos](https://github.com/shiyu-coder/Kronos), MIT. Stationary
+bootstrap: Politis and Romano (1994). Probabilistic Sharpe ratio: Bailey and Lopez de
+Prado (2012). Sharpe standard error: Lo (2002). Prices from Yahoo Finance through
+yfinance; the snapshot hash is in `data/MANIFEST.json`.
 
 MIT licensed. Built by Kaustubh Patil.

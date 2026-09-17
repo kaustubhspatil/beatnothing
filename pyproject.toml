@@ -10,15 +10,42 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Kaustubh Patil" }]
+keywords = ["quant", "backtest", "benchmark", "transaction costs", "sharpe", "bootstrap", "survivorship bias",
+            "point in time", "leakage", "equity signals"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
 dependencies = ["numpy>=1.24", "pandas>=2.0", "pyarrow>=14", "scipy>=1.10"]
 
 [project.optional-dependencies]
 data = ["yfinance>=0.2", "requests>=2.31"]
 figures = ["matplotlib>=3.7"]
-dev = ["pytest>=7"]
+dev = ["pytest>=7", "build>=1.0", "twine>=5.0"]
+
+[project.urls]
+Homepage = "https://github.com/kaustubhspatil/beatnothing"
+Repository = "https://github.com/kaustubhspatil/beatnothing"
+Leaderboard = "https://github.com/kaustubhspatil/beatnothing/blob/master/leaderboard/LEADERBOARD.md"
+Issues = "https://github.com/kaustubhspatil/beatnothing/issues"
+
+[project.scripts]
+beatnothing = "beatnothing.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["beatnothing*"]
+
+[tool.setuptools.package-data]
+beatnothing = ["data/*.gz", "data/*.json", "data/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

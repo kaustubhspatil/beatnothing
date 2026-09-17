@@ -158,7 +158,8 @@ if __name__ == "__main__":
     fig_net_edge(board)
     fig_cost_inversion(board)
     fig_forward(board, actual)
+    from beatnothing.universe import PIT_DIR
     gone = fig_survivorship(available=set(actual.columns) | {
         # names that left the index but still trade under the same ticker (checked 2026 09 17)
-        t for t in json.loads((ROOT / "data" / "pit" / "still_listed_leavers.json").read_text())})
+        t for t in json.loads((PIT_DIR / "still_listed_leavers.json").read_text())})
     print("figures written; survivorship gap:", gone["left_and_unavailable"], "of", gone["members_at_start"])
