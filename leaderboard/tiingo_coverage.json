@@ -1,0 +1,57 @@
+{
+  "probed": [
+    "SIVB",
+    "ATVI",
+    "TWTR",
+    "PXD",
+    "FRC"
+  ],
+  "covered": [
+    "SIVB",
+    "ATVI",
+    "TWTR",
+    "PXD"
+  ],
+  "detail": [
+    {
+      "ticker": "SIVB",
+      "meta_status": 404,
+      "end_date": null,
+      "rows": 5145,
+      "first": "2005-01-03",
+      "last": "2026-09-17"
+    },
+    {
+      "ticker": "ATVI",
+      "meta_status": 200,
+      "end_date": "2023-10-13",
+      "rows": 4728,
+      "first": "2005-01-03",
+      "last": "2023-10-13"
+    },
+    {
+      "ticker": "TWTR",
+      "meta_status": 200,
+      "end_date": "2022-10-28",
+      "rows": 2260,
+      "first": "2013-11-07",
+      "last": "2022-10-28"
+    },
+    {
+      "ticker": "PXD",
+      "meta_status": 200,
+      "end_date": "2024-05-03",
+      "rows": 4867,
+      "first": "2005-01-03",
+      "last": "2024-05-03"
+    },
+    {
+      "ticker": "FRC",
+      "meta_status": 404,
+      "end_date": null,
+      "rows": 0,
+      "first": "",
+      "last": ""
+    }
+  ]
+}

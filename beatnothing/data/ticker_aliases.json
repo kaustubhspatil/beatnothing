@@ -1,0 +1,20 @@
+{
+  "_about": "Index members that changed ticker without ceasing to trade. The membership tables use the old symbol; a free price source holds the full history under the new one. Verified against Yahoo Finance on 2026 09 17 (history start date shown). Names that were acquired or went bankrupt are not here; those need an archive that keeps delisted histories.",
+  "ABC": {"alias": "COR", "history_from": "2005-01-03", "note": "AmerisourceBergen renamed Cencora, 2023"},
+  "ANTM": {"alias": "ELV", "history_from": "2005-01-03", "note": "Anthem renamed Elevance Health, 2022"},
+  "BLL": {"alias": "BALL", "history_from": "2005-01-03", "note": "Ball Corporation ticker change, 2022"},
+  "RE": {"alias": "EG", "history_from": "2005-01-03", "note": "Everest Re renamed Everest Group, 2023"},
+  "PEAK": {"alias": "DOC", "history_from": "2005-01-03", "note": "Healthpeak ticker change after the Physicians Realty merger, 2024"},
+  "PKI": {"alias": "RVTY", "history_from": "2005-01-03", "note": "PerkinElmer renamed Revvity, 2023"},
+  "NLOK": {"alias": "GEN", "history_from": "2005-01-03", "note": "NortonLifeLock renamed Gen Digital, 2022"},
+  "GPS": {"alias": "GAP", "history_from": "2005-01-03", "note": "Gap ticker change, 2024"},
+  "BK": {"alias": "BNY", "history_from": "2005-01-03", "note": "Bank of New York Mellon ticker change, 2025"},
+  "MMC": {"alias": "MRSH", "history_from": "2005-01-03", "note": "Marsh McLennan ticker change"},
+  "FLT": {"alias": "CPAY", "history_from": "2010-12-15", "note": "FleetCor renamed Corpay, 2024"},
+  "FBHS": {"alias": "FBIN", "history_from": "2011-09-16", "note": "Fortune Brands Home and Security renamed Fortune Brands Innovations, 2022"},
+  "WRK": {"alias": "SW", "history_from": "2008-06-17", "note": "WestRock merged into Smurfit Westrock, 2024; Yahoo continues the series"},
+  "DISCA": {"alias": "WBD", "history_from": "2005-07-08", "note": "Discovery merged into Warner Bros. Discovery, 2022; Yahoo continues the series"},
+  "DISCK": {"alias": "WBD", "history_from": "2005-07-08", "note": "Discovery class C, same continuation as DISCA"},
+  "FRC": {"alias": "FRCB", "history_from": "2010-12-09", "note": "First Republic Bank after its 2023 failure; served under FRCB by Yahoo and Tiingo"},
+  "SIVB": {"alias": "SIVBQ", "history_from": "2005-01-03", "note": "SVB Financial after its 2023 failure; Tiingo serves the continued series under SIVB and SIVBQ, Yahoo has neither"}
+}
