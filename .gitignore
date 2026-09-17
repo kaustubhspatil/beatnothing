@@ -9,3 +9,13 @@ data/raw/
 venv/
 .idea/
 .vscode/
+
+# secrets, never committed
+.env
+*.env
+*_api_key.txt
+*.key
+secrets/
+
+# the full feature panel is rebuilt by scripts/download_data.py; too large to version monthly
+data/feature_panel.parquet
