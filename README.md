@@ -215,11 +215,31 @@ the ones that later died:
 <tr><td>LSTM, 60 day windows</td><td>−0.25</td><td>[−0.53, +0.00]</td><td>−0.22 [−0.46, +0.00]</td><td>+0.21</td><td>+0.52</td><td>−22%</td><td>51×</td></tr>
 <tr><td>Low volatility, long short vs cash</td><td>−0.27</td><td>[−1.25, +0.69]</td><td></td><td>−0.27</td><td>−0.22</td><td>−28%</td><td>6.7×</td></tr>
 <tr><td>Cost aware network, no cost term</td><td>−0.33</td><td>[−0.89, +0.24]</td><td>−0.30 [−0.84, +0.24]</td><td>+0.14</td><td>+0.49</td><td>−6%</td><td>12×</td></tr>
+<tr><td>Kronos small, zero shot, weekly</td><td>−0.35</td><td>[−0.55, −0.16]</td><td></td><td>+0.12</td><td>+0.38</td><td>−25%</td><td>50×</td></tr>
 <tr><td>Reversal 1m, long top decile</td><td>−0.38</td><td>[−0.81, +0.03]</td><td></td><td>+0.09</td><td>+0.17</td><td>−27%</td><td>21×</td></tr>
 <tr><td>Reversal 1m, long short vs cash</td><td>−0.47</td><td>[−1.38, +0.49]</td><td></td><td>−0.47</td><td>−0.25</td><td>−21%</td><td>21×</td></tr>
 <tr><td>Linear regression, the incumbent</td><td>−0.80</td><td>[−1.09, −0.52]</td><td>−0.77 [−1.10, −0.48]</td><td>−0.34</td><td>+0.47</td><td>−38%</td><td>151×</td></tr>
 <tr><td>1D CNN, 60 day windows</td><td>−1.03</td><td>[−1.38, −0.70]</td><td>−1.00 [−1.42, −0.67]</td><td>−0.56</td><td>+0.53</td><td>−52%</td><td>235×</td></tr>
+<tr><td>Kronos small, zero shot, daily</td><td>−1.31</td><td>[−1.56, −1.06]</td><td></td><td>−0.84</td><td>+0.35</td><td>−55%</td><td>225×</td></tr>
 </table>
+
+### The foundation model's information does not live in the daily rebalance
+
+Kronos runs twice here, forecasting every trading day and every fifth, the second holding
+its signal between. The pair separates what the model knows from what the trading costs:
+
+<table>
+<tr><th>Kronos small, zero shot, sealed window</th><th>Gross Sharpe</th><th>Net Sharpe</th><th>Cost of trading</th><th>Turnover</th><th>Max drawdown</th></tr>
+<tr><td>Forecasting daily</td><td>+0.35</td><td>−0.84</td><td>1.19 of Sharpe</td><td>225×</td><td>−55%</td></tr>
+<tr><td>Forecasting weekly</td><td>+0.38</td><td>+0.12</td><td>0.26 of Sharpe</td><td>50×</td><td>−25%</td></tr>
+</table>
+
+The gross numbers are the same within noise, so the model knows no more at a daily
+horizon than at a weekly one. Everything that separates a Sharpe of minus 0.84 from plus
+0.12 is the cost of acting on it five times as often, and that is a property of the
+evaluation nobody sees without charging for turnover. It is also not a rescue: at plus
+0.12 against the bar's plus 0.47, the weekly version is still significantly worse than
+holding everything, with an interval of [−0.55, −0.16] that sits entirely below zero.
 
 Nothing clears either bar. Three contestants have a positive point estimate and every one
 of their intervals contains zero; after the stepdown across all fourteen, the lowest
@@ -228,8 +248,9 @@ the absolute numbers are roughly half, and the learned models neither collapse n
 on ten times the names including the failures: a strategy that hugs the bar hugs whatever
 bar it is given. On 2026 to date every interval includes zero on both tracks.
 
-Kronos is not on this track yet; 500 names times 1,200 days of autoregressive generation
-is most of a day of GPU time, and its verdict on the survivor track stands.
+Kronos is now on this track twice, daily and weekly. Five hundred names times twelve
+hundred days of autoregressive generation is 590,089 forecasts and just under five hours
+on a laptop card.
 
 ### The classic factors, on the honest universe, after costs
 
@@ -341,7 +362,7 @@ python scripts/make_figures.py pit
 
 ## Roadmap
 
-1. **Retrain on the point in time universe.** The universe is honest now; the contestants were still trained on survivors. Season three trains every reference model on the full membership from 2005, which needs the dead names of two more decades from the free tier, a few hundred symbols across a couple of months of quota.
+1. **Retrain on the point in time universe, back to 2013.** The universe is honest now; the contestants were still trained on survivors. The free tier supplies 291 of the 362 index members that left before 2021, which is enough for 98% coverage from 2013 but only 85% in 2005, and the names it cannot supply are concentrated in exactly the wrong place: Lehman Brothers, Bear Stearns, Washington Mutual, Countrywide, Fannie Mae and Freddie Mac are all missing. Building back to 2005 on free data would quietly reintroduce survivorship bias into the 2008 crisis, which is the one window where it would matter most, so season three trains from 2013 and says plainly that the crisis is out of reach without a paid archive.
 2. **An LLM agent contestant**, in the spirit of StockBench, under the same costs and the same bar.
 3. **A technical report with a DOI**, so the method can be cited rather than linked. Anyone whose contestant is merged and survives a year of forward track is a named author on it.
 4. **A year of forward track.** The workflow is armed; the calendar does the rest.
