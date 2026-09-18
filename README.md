@@ -132,8 +132,8 @@ so what distortion remains is a finite sample effect and not a bug.
 
 The third row is the one that matters most for a leaderboard, and it is why the verdict
 column reports an adjusted p value rather than an interval. Six boards in ten would have
-crowned somebody. On the real boards here the lowest adjusted p value is 0.97, so nothing
-comes close.
+crowned somebody. On the real boards here the lowest adjusted p value is 0.996 on the
+twenty five contestant board and 0.91 anywhere across both tracks, so nothing comes close.
 
 Getting that experiment right was harder than it looks, and the first attempt was silently
 wrong: adding zero mean noise to the bar leaves the mean alone but raises the variance, so
@@ -253,9 +253,10 @@ evaluation nobody sees without charging for turnover. It is also not a rescue: a
 0.12 against the bar's plus 0.47, the weekly version is still significantly worse than
 holding everything, with an interval of [−0.55, −0.16] that sits entirely below zero.
 
-Nothing clears either bar. Three contestants have a positive point estimate and every one
-of their intervals contains zero; after the stepdown across all fourteen, the lowest
-adjusted p value on the board is 0.97. The order is the same as on the survivor universe,
+Nothing clears either bar. Five contestants have a positive point estimate, the largest
+being twelve month momentum traded long short at +0.21, and every one of their intervals
+contains zero; after the stepdown across all twenty four, the lowest adjusted p value on
+the board is 0.996. The order is the same as on the survivor universe,
 the absolute numbers are roughly half, and the learned models neither collapse nor shine
 on ten times the names including the failures: a strategy that hugs the bar hugs whatever
 bar it is given. On 2026 to date every interval includes zero on both tracks.
