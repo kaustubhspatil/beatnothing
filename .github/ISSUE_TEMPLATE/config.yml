@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: How to submit a contestant
+    url: https://github.com/kaustubhspatil/beatnothing/blob/master/contestants/README.md
+    about: The file format and the rules of the engine.
+  - name: The technical report
+    url: https://github.com/kaustubhspatil/beatnothing/blob/master/docs/technical_report.md
+    about: Every method and every reference behind the numbers on the board.
