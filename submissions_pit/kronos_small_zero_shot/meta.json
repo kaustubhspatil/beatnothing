@@ -1,0 +1,18 @@
+{
+  "name": "kronos_small_zero_shot",
+  "kind": "predictions",
+  "rule": "long_flat",
+  "training_cutoff": "pretrained by its authors (Kronos, AAAI 2026); never trained on this data",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership",
+  "rebalance": "daily",
+  "description": "Kronos small (24.7M parameters, MIT) zero shot: the trailing 400 daily bars of each member on every trading day, the signal being the predicted close over the last close, three samples averaged. No parameter ever saw this data.",
+  "weights_source": {
+    "model": "NeoQuasar/Kronos-small",
+    "tokenizer": "NeoQuasar/Kronos-Tokenizer-base"
+  },
+  "context_bars": 400,
+  "samples": 3,
+  "source_sha256": "1b3e1298094506b969e874cb4a9a3288ef81c97525079a86865ff476749a51c5",
+  "signal_sha256": "97ffa781e0beec50571596b0832834983fef49e602473603fc4127f64a72164f"
+}

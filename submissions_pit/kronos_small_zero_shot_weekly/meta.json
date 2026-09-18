@@ -1,0 +1,18 @@
+{
+  "name": "kronos_small_zero_shot_weekly",
+  "kind": "predictions",
+  "rule": "long_flat",
+  "training_cutoff": "pretrained by its authors (Kronos, AAAI 2026); never trained on this data",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership",
+  "rebalance": "every 5 trading days, held between",
+  "description": "Kronos small (24.7M parameters, MIT) zero shot, forecasting every fifth trading day from the trailing 400 daily bars and holding the signal between. The daily version of this model was destroyed by its own turnover on the survivor track; this asks whether it has information when it is not traded to death.",
+  "weights_source": {
+    "model": "NeoQuasar/Kronos-small",
+    "tokenizer": "NeoQuasar/Kronos-Tokenizer-base"
+  },
+  "context_bars": 400,
+  "samples": 3,
+  "source_sha256": "1b3e1298094506b969e874cb4a9a3288ef81c97525079a86865ff476749a51c5",
+  "signal_sha256": "b4b1b974d48918712b9aa92ed4aab63b21816517c6848d526f46bc9f88161e41"
+}
