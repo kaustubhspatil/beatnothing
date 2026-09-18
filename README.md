@@ -142,7 +142,10 @@ Backtest(actual, predictions=hindsight_universe(actual, 10)).stats()  # the ten 
 
 If a canary does not score absurdly well, your pipeline is not measuring what you think.
 The `truncation_test` in the same module proves a feature builder is trailing only by
-deleting the future, recomputing, and demanding byte identical rows.
+deleting the future, recomputing, and demanding byte identical rows. Run on the point in
+time panel it compares 46,605 rows across 60 names either side of a June 2024 cutoff and
+finds a maximum difference of exactly zero on every one of the seventeen features
+([`data/pit/truncation_test.json`](data/pit/truncation_test.json)).
 
 ## The universe knew the future
 
