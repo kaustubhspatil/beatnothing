@@ -8,16 +8,16 @@ Universe bar: always long, equal weight, same universe, same costs. Costs: 10 bp
 ## sealed 2022 2025  (2022-01-01 to 2025-12-31)
 
 <table>
-<tr><th>Contestant</th><th>Net Edge</th><th>95% CI</th><th>Clears bar</th><th>Edge vs RSP</th><th>95% CI</th><th>Clears RSP</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Sharpe at 20 bps</th><th>Max DD</th><th>Turnover/yr</th><th>Avg exposure</th><th>P&amp;L on $1M</th></tr>
-<tr><td>always_long</td><td>+0.00</td><td>[+0.00, +0.00]</td><td>no</td><td>+0.44</td><td>[+0.19, +0.76]</td><td>yes</td><td>+0.88</td><td>+0.88</td><td>+0.88</td><td>-20.9%</td><td>0.3x</td><td>100.0%</td><td>+663,322</td></tr>
-<tr><td>ffnn_128_64_32</td><td>-0.03</td><td>[-0.06, -0.01]</td><td>no</td><td>+0.41</td><td>[+0.17, +0.72]</td><td>yes</td><td>+0.85</td><td>+0.88</td><td>+0.82</td><td>-21.3%</td><td>4.3x</td><td>100.0%</td><td>+631,816</td></tr>
-<tr><td>costaware_net_lambda10bps_3seed_mean</td><td>-0.04</td><td>[-0.10, +0.01]</td><td>no</td><td>+0.40</td><td>[+0.15, +0.72]</td><td>yes</td><td>+0.83</td><td>+0.87</td><td>+0.80</td><td>-12.0%</td><td>2.9x</td><td>56.0%</td><td>+345,138</td></tr>
-<tr><td>lightgbm_mse</td><td>-0.14</td><td>[-0.45, +0.09]</td><td>no</td><td>+0.30</td><td>[-0.13, +0.72]</td><td>no</td><td>+0.74</td><td>+0.79</td><td>+0.69</td><td>-22.5%</td><td>7.2x</td><td>98.4%</td><td>+495,796</td></tr>
-<tr><td>lstm_60d</td><td>-0.53</td><td>[-1.07, -0.10]</td><td>no</td><td>-0.08</td><td>[-0.61, +0.44]</td><td>no</td><td>+0.35</td><td>+0.62</td><td>+0.08</td><td>-20.5%</td><td>42.7x</td><td>98.5%</td><td>+189,470</td></tr>
-<tr><td>costaware_net_lambda0bps_3seed_mean</td><td>-0.70</td><td>[-1.33, -0.09]</td><td>no</td><td>-0.26</td><td>[-0.89, +0.35]</td><td>no</td><td>+0.18</td><td>+0.53</td><td>-0.17</td><td>-6.4%</td><td>11.5x</td><td>11.6%</td><td>+21,510</td></tr>
-<tr><td>cnn1d_60d</td><td>-0.93</td><td>[-1.62, -0.32]</td><td>no</td><td>-0.49</td><td>[-1.17, +0.16]</td><td>no</td><td>-0.05</td><td>+1.08</td><td>-1.18</td><td>-34.9%</td><td>265.2x</td><td>98.9%</td><td>-145,881</td></tr>
-<tr><td>linear_incumbent</td><td>-1.17</td><td>[-1.85, -0.64]</td><td>no</td><td>-0.73</td><td>[-1.42, -0.10]</td><td>no</td><td>-0.30</td><td>+0.51</td><td>-1.10</td><td>-41.2%</td><td>159.2x</td><td>99.0%</td><td>-267,985</td></tr>
-<tr><td>kronos_small_zero_shot</td><td>-1.67</td><td>[-2.13, -1.28]</td><td>no</td><td>-1.23</td><td>[-1.71, -0.79]</td><td>no</td><td>-0.79</td><td>+0.52</td><td>-2.10</td><td>-53.0%</td><td>240.6x</td><td>100.0%</td><td>-475,324</td></tr>
+<tr><th>Contestant</th><th>Rule</th><th>Net Edge</th><th>95% CI</th><th>Clears bar</th><th>Edge vs RSP</th><th>95% CI</th><th>Clears RSP</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Sharpe at 20 bps</th><th>Max DD</th><th>Turnover/yr</th><th>Avg exposure</th><th>P&amp;L on $1M</th></tr>
+<tr><td>always_long</td><td>long_flat</td><td>+0.00</td><td>[+0.00, +0.00]</td><td>no</td><td>+0.44</td><td>[+0.19, +0.76]</td><td>yes</td><td>+0.88</td><td>+0.88</td><td>+0.88</td><td>-20.9%</td><td>0.3x</td><td>100.0%</td><td>+663,322</td></tr>
+<tr><td>ffnn_128_64_32</td><td>long_flat</td><td>-0.03</td><td>[-0.06, -0.01]</td><td>no</td><td>+0.41</td><td>[+0.17, +0.72]</td><td>yes</td><td>+0.85</td><td>+0.88</td><td>+0.82</td><td>-21.3%</td><td>4.3x</td><td>100.0%</td><td>+631,816</td></tr>
+<tr><td>costaware_net_lambda10bps_3seed_mean</td><td>long_flat</td><td>-0.04</td><td>[-0.10, +0.01]</td><td>no</td><td>+0.40</td><td>[+0.15, +0.72]</td><td>yes</td><td>+0.83</td><td>+0.87</td><td>+0.80</td><td>-12.0%</td><td>2.9x</td><td>56.0%</td><td>+345,138</td></tr>
+<tr><td>lightgbm_mse</td><td>long_flat</td><td>-0.14</td><td>[-0.45, +0.09]</td><td>no</td><td>+0.30</td><td>[-0.13, +0.72]</td><td>no</td><td>+0.74</td><td>+0.79</td><td>+0.69</td><td>-22.5%</td><td>7.2x</td><td>98.4%</td><td>+495,796</td></tr>
+<tr><td>lstm_60d</td><td>long_flat</td><td>-0.53</td><td>[-1.07, -0.10]</td><td>no</td><td>-0.08</td><td>[-0.61, +0.44]</td><td>no</td><td>+0.35</td><td>+0.62</td><td>+0.08</td><td>-20.5%</td><td>42.7x</td><td>98.5%</td><td>+189,470</td></tr>
+<tr><td>costaware_net_lambda0bps_3seed_mean</td><td>long_flat</td><td>-0.70</td><td>[-1.33, -0.09]</td><td>no</td><td>-0.26</td><td>[-0.89, +0.35]</td><td>no</td><td>+0.18</td><td>+0.53</td><td>-0.17</td><td>-6.4%</td><td>11.5x</td><td>11.6%</td><td>+21,510</td></tr>
+<tr><td>cnn1d_60d</td><td>long_flat</td><td>-0.93</td><td>[-1.62, -0.32]</td><td>no</td><td>-0.49</td><td>[-1.17, +0.16]</td><td>no</td><td>-0.05</td><td>+1.08</td><td>-1.18</td><td>-34.9%</td><td>265.2x</td><td>98.9%</td><td>-145,881</td></tr>
+<tr><td>linear_incumbent</td><td>long_flat</td><td>-1.17</td><td>[-1.85, -0.64]</td><td>no</td><td>-0.73</td><td>[-1.42, -0.10]</td><td>no</td><td>-0.30</td><td>+0.51</td><td>-1.10</td><td>-41.2%</td><td>159.2x</td><td>99.0%</td><td>-267,985</td></tr>
+<tr><td>kronos_small_zero_shot</td><td>long_flat</td><td>-1.67</td><td>[-2.13, -1.28]</td><td>no</td><td>-1.23</td><td>[-1.71, -0.79]</td><td>no</td><td>-0.79</td><td>+0.52</td><td>-2.10</td><td>-53.0%</td><td>240.6x</td><td>100.0%</td><td>-475,324</td></tr>
 </table>
 
 Universe bar net Sharpe +0.88 against RSP +0.44: the universe bar's edge over the investable index is +0.44 [+0.19, +0.76]. That is how much choosing the universe with hindsight was worth on this window.
@@ -25,16 +25,16 @@ Universe bar net Sharpe +0.88 against RSP +0.44: the universe bar's edge over th
 ## post cutoff 2026  (2026-01-01 to 2026-12-31)
 
 <table>
-<tr><th>Contestant</th><th>Net Edge</th><th>95% CI</th><th>Clears bar</th><th>Edge vs RSP</th><th>95% CI</th><th>Clears RSP</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Sharpe at 20 bps</th><th>Max DD</th><th>Turnover/yr</th><th>Avg exposure</th><th>P&amp;L on $1M</th></tr>
-<tr><td>costaware_net_lambda0bps_3seed_mean</td><td>+0.18</td><td>[-0.58, +0.97]</td><td>no</td><td>+0.32</td><td>[-0.71, +1.35]</td><td>no</td><td>+1.62</td><td>+2.47</td><td>+0.78</td><td>-0.7%</td><td>9.7x</td><td>9.4%</td><td>+13,051</td></tr>
-<tr><td>costaware_net_lambda10bps_3seed_mean</td><td>+0.00</td><td>[-0.07, +0.08]</td><td>no</td><td>+0.15</td><td>[-0.96, +1.14]</td><td>no</td><td>+1.45</td><td>+1.50</td><td>+1.39</td><td>-3.6%</td><td>3.3x</td><td>55.5%</td><td>+58,151</td></tr>
-<tr><td>always_long</td><td>+0.00</td><td>[+0.00, +0.00]</td><td>no</td><td>+0.14</td><td>[-0.98, +1.14]</td><td>no</td><td>+1.44</td><td>+1.46</td><td>+1.43</td><td>-6.1%</td><td>1.4x</td><td>100.0%</td><td>+103,176</td></tr>
-<tr><td>lightgbm_mse</td><td>+0.00</td><td>[+0.00, +0.00]</td><td>no</td><td>+0.14</td><td>[-0.98, +1.14]</td><td>no</td><td>+1.44</td><td>+1.46</td><td>+1.43</td><td>-6.1%</td><td>1.4x</td><td>100.0%</td><td>+103,176</td></tr>
-<tr><td>ffnn_128_64_32</td><td>-0.08</td><td>[-0.17, -0.01]</td><td>no</td><td>+0.06</td><td>[-1.07, +1.04]</td><td>no</td><td>+1.36</td><td>+1.43</td><td>+1.29</td><td>-6.1%</td><td>7.6x</td><td>100.0%</td><td>+97,155</td></tr>
-<tr><td>cnn1d_60d</td><td>-1.04</td><td>[-2.76, +0.76]</td><td>no</td><td>-0.90</td><td>[-2.71, +1.15]</td><td>no</td><td>+0.40</td><td>+2.12</td><td>-1.31</td><td>-12.0%</td><td>323.1x</td><td>96.6%</td><td>+41,465</td></tr>
-<tr><td>linear_incumbent</td><td>-1.33</td><td>[-3.21, +0.20]</td><td>no</td><td>-1.19</td><td>[-3.11, +0.69]</td><td>no</td><td>+0.12</td><td>+1.35</td><td>-1.13</td><td>-9.1%</td><td>164.8x</td><td>100.0%</td><td>+4,546</td></tr>
-<tr><td>kronos_small_zero_shot</td><td>-1.60</td><td>[-3.14, -0.12]</td><td>no</td><td>-1.43</td><td>[-2.95, +0.23]</td><td>no</td><td>-0.19</td><td>+1.71</td><td>-2.08</td><td>-14.3%</td><td>244.7x</td><td>100.0%</td><td>-22,364</td></tr>
-<tr><td>lstm_60d</td><td>-1.65</td><td>[-3.69, -0.07]</td><td>no</td><td>-1.50</td><td>[-3.67, +0.37]</td><td>no</td><td>-0.20</td><td>+0.20</td><td>-0.60</td><td>-9.3%</td><td>42.8x</td><td>100.0%</td><td>-19,077</td></tr>
+<tr><th>Contestant</th><th>Rule</th><th>Net Edge</th><th>95% CI</th><th>Clears bar</th><th>Edge vs RSP</th><th>95% CI</th><th>Clears RSP</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Sharpe at 20 bps</th><th>Max DD</th><th>Turnover/yr</th><th>Avg exposure</th><th>P&amp;L on $1M</th></tr>
+<tr><td>costaware_net_lambda0bps_3seed_mean</td><td>long_flat</td><td>+0.18</td><td>[-0.58, +0.97]</td><td>no</td><td>+0.32</td><td>[-0.71, +1.35]</td><td>no</td><td>+1.62</td><td>+2.47</td><td>+0.78</td><td>-0.7%</td><td>9.7x</td><td>9.4%</td><td>+13,051</td></tr>
+<tr><td>costaware_net_lambda10bps_3seed_mean</td><td>long_flat</td><td>+0.00</td><td>[-0.07, +0.08]</td><td>no</td><td>+0.15</td><td>[-0.96, +1.14]</td><td>no</td><td>+1.45</td><td>+1.50</td><td>+1.39</td><td>-3.6%</td><td>3.3x</td><td>55.5%</td><td>+58,151</td></tr>
+<tr><td>always_long</td><td>long_flat</td><td>+0.00</td><td>[+0.00, +0.00]</td><td>no</td><td>+0.14</td><td>[-0.98, +1.14]</td><td>no</td><td>+1.44</td><td>+1.46</td><td>+1.43</td><td>-6.1%</td><td>1.4x</td><td>100.0%</td><td>+103,176</td></tr>
+<tr><td>lightgbm_mse</td><td>long_flat</td><td>+0.00</td><td>[+0.00, +0.00]</td><td>no</td><td>+0.14</td><td>[-0.98, +1.14]</td><td>no</td><td>+1.44</td><td>+1.46</td><td>+1.43</td><td>-6.1%</td><td>1.4x</td><td>100.0%</td><td>+103,176</td></tr>
+<tr><td>ffnn_128_64_32</td><td>long_flat</td><td>-0.08</td><td>[-0.17, -0.01]</td><td>no</td><td>+0.06</td><td>[-1.07, +1.04]</td><td>no</td><td>+1.36</td><td>+1.43</td><td>+1.29</td><td>-6.1%</td><td>7.6x</td><td>100.0%</td><td>+97,155</td></tr>
+<tr><td>cnn1d_60d</td><td>long_flat</td><td>-1.04</td><td>[-2.76, +0.76]</td><td>no</td><td>-0.90</td><td>[-2.71, +1.15]</td><td>no</td><td>+0.40</td><td>+2.12</td><td>-1.31</td><td>-12.0%</td><td>323.1x</td><td>96.6%</td><td>+41,465</td></tr>
+<tr><td>linear_incumbent</td><td>long_flat</td><td>-1.33</td><td>[-3.21, +0.20]</td><td>no</td><td>-1.19</td><td>[-3.11, +0.69]</td><td>no</td><td>+0.12</td><td>+1.35</td><td>-1.13</td><td>-9.1%</td><td>164.8x</td><td>100.0%</td><td>+4,546</td></tr>
+<tr><td>kronos_small_zero_shot</td><td>long_flat</td><td>-1.60</td><td>[-3.14, -0.12]</td><td>no</td><td>-1.43</td><td>[-2.95, +0.23]</td><td>no</td><td>-0.19</td><td>+1.71</td><td>-2.08</td><td>-14.3%</td><td>244.7x</td><td>100.0%</td><td>-22,364</td></tr>
+<tr><td>lstm_60d</td><td>long_flat</td><td>-1.65</td><td>[-3.69, -0.07]</td><td>no</td><td>-1.50</td><td>[-3.67, +0.37]</td><td>no</td><td>-0.20</td><td>+0.20</td><td>-0.60</td><td>-9.3%</td><td>42.8x</td><td>100.0%</td><td>-19,077</td></tr>
 </table>
 
 Universe bar net Sharpe +1.44 against RSP +1.30: the universe bar's edge over the investable index is +0.14 [-0.98, +1.14]. That is how much choosing the universe with hindsight was worth on this window.

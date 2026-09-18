@@ -1,0 +1,11 @@
+{
+  "name": "momentum_12_1_long_top",
+  "kind": "predictions",
+  "rule": "long_top",
+  "quantile": 0.1,
+  "training_cutoff": "none (a formula)",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership",
+  "rebalance": "monthly, first trading day",
+  "description": "Twelve month momentum skipping the most recent month (Jegadeesh and Titman). Monthly rebalanced. Long only the top decile, equal weight; judged against the universe bar."
+}

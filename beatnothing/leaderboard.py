@@ -99,16 +99,19 @@ def bar_returns(actual: pd.DataFrame, cost_bps: float = COST_BPS) -> pd.Series:
 
 def score_window(actual: pd.DataFrame, wide: pd.DataFrame, kind: str, start, end,
                  bar: pd.Series, n_boot: int = 2000, cost_bps: float = COST_BPS,
-                 investable: pd.Series | None = None) -> dict | None:
+                 investable: pd.Series | None = None, rule: str = "long_flat", quantile: float = 0.1) -> dict | None:
     a = actual.loc[(actual.index >= start) & (actual.index <= end)]
     w = wide.loc[(wide.index >= start) & (wide.index <= end)]
     if len(a) == 0 or len(w) == 0:
         return None
-    kw = {"predictions": w} if kind == "predictions" else {"weights": w}
+    kw = {"predictions": w, "rule": rule, "quantile": quantile} if kind == "predictions" else {"weights": w, "allow_short": True}
     bt = Backtest(a, cost_bps=cost_bps, **kw)
     stats = bt.stats()
     r = bt.daily_returns
-    b = bar.reindex(r.index).fillna(0.0)
+    # a dollar neutral book competes with cash, not with a long only bar
+    dollar_neutral = rule == "long_short" or (kind == "weights" and abs(stats["avg_exposure"]) < 0.1 and stats["avg_short_exposure"] > 0.05)
+    stats["bar_used"] = "cash" if dollar_neutral else "universe"
+    b = pd.Series(0.0, index=r.index) if dollar_neutral else bar.reindex(r.index).fillna(0.0)
     edge = net_edge(r.values, b.values, n_boot=n_boot)
     grid = cost_grid(a, grid=(0, 10, 20), **kw)
     stats.update({"net_edge": edge["net_edge"], "ci_low": edge["ci_low"], "ci_high": edge["ci_high"],
@@ -165,7 +168,8 @@ def build(actual_path: Path, n_boot: int = 2000, root: Path | None = None, submi
         meta, wide = load_submission(folder)
         entry = {"meta": meta, "windows": {}}
         for name, (s, e) in WINDOWS.items():
-            res = score_window(actual, wide, meta["kind"], s, e, ubars[name], n_boot=n_boot, investable=inv_all)
+            res = score_window(actual, wide, meta["kind"], s, e, ubars[name], n_boot=n_boot, investable=inv_all,
+                               rule=meta.get("rule", "long_flat"), quantile=float(meta.get("quantile", 0.1)))
             if res is not None:
                 entry["windows"][name] = res
         board["entries"].append(entry)
@@ -197,7 +201,7 @@ def to_markdown(board: dict) -> str:
     for wname, (s, e) in board["windows"].items():
         rows = [(en["meta"], en["windows"][wname]) for en in board["entries"] if wname in en["windows"]]
         rows.sort(key=lambda t: -t[1]["net_edge"])
-        head = ("<tr><th>Contestant</th><th>Net Edge</th><th>95% CI</th><th>Clears bar</th>"
+        head = ("<tr><th>Contestant</th><th>Rule</th><th>Net Edge</th><th>95% CI</th><th>Clears bar</th>"
                 + ("<th>Edge vs RSP</th><th>95% CI</th><th>Clears RSP</th>" if has_inv else "")
                 + "<th>Net Sharpe</th><th>Gross Sharpe</th><th>Sharpe at 20 bps</th><th>Max DD</th>"
                   "<th>Turnover/yr</th><th>Avg exposure</th><th>P&amp;L on $1M</th></tr>")
@@ -211,8 +215,9 @@ def to_markdown(board: dict) -> str:
                                  f"<td>{'yes' if r['clears_investable'] else 'no'}</td>")
                 else:
                     inv_cells = "<td></td><td></td><td></td>"
+            rule_cell = r.get("rule", "long_flat") + (" vs cash" if r.get("bar_used") == "cash" else "")
             out.append(
-                f"<tr><td>{meta['name']}</td><td>{_fmt(r['net_edge'])}</td>"
+                f"<tr><td>{meta['name']}</td><td>{rule_cell}</td><td>{_fmt(r['net_edge'])}</td>"
                 f"<td>[{_fmt(r['ci_low'])}, {_fmt(r['ci_high'])}]</td>"
                 f"<td>{'yes' if r['clears_bar'] else 'no'}</td>{inv_cells}<td>{_fmt(r['net_sharpe'])}</td>"
                 f"<td>{_fmt(r['gross_sharpe'])}</td><td>{_fmt(r['net_sharpe_20bps'])}</td>"

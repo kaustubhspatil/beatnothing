@@ -79,6 +79,7 @@ def main() -> None:
         s["Ticker"] = t
         blocks.append(s)
     prices = pd.concat(blocks, ignore_index=True)
+    prices.to_parquet(OUT / "prices_pit.parquet", index=False)      # merged OHLCV, all sources (gitignored)
 
     raw = RAW / "sp500_stocks.csv"
     vix = pd.read_csv(RAW / "vix.csv", parse_dates=["Date"], index_col="Date")["Close"].rename("vix")

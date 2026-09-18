@@ -18,7 +18,11 @@ A contestant is a folder under the track's submissions directory with two files.
 
 **`meta.json`** with `name`, `kind` (`predictions` or `weights`), `training_cutoff`,
 `registered` (the date you froze the model; forward scoring counts only days after it),
-a one paragraph `description`, and the sha256 of every frozen model file.
+a one paragraph `description`, and the sha256 of every frozen model file. Predictions
+also declare a `rule`: `long_flat` (the default: long every positive value), `long_top`
+(long the top `quantile`, default a tenth), or `long_short` (top decile long, bottom
+decile short, dollar neutral, borrow charged, judged against cash). Weights that go
+short are accepted as long as gross exposure never exceeds one.
 
 Rules that make the score mean something:
 
