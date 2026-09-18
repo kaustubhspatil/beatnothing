@@ -241,6 +241,22 @@ cash because a dollar neutral book competes with cash, not with an index.
 Their rows are in the table above, mixed in with everything else, which is the point: a
 factor and a neural network are contestants under the same rules.
 
+Momentum's positive edge, the only one on the board, rests entirely on cheap borrow. The
+bottom decile of a momentum screen is where hard to borrow names live, so the flat fifty
+basis points a year charged by default is the optimistic case. Raising it prices the
+optimism away:
+
+<table>
+<tr><th>Dollar neutral contestant, net Sharpe</th><th>50 bps borrow</th><th>200 bps</th><th>500 bps</th><th>1000 bps</th></tr>
+<tr><td>Momentum 12 1</td><td>+0.21</td><td>+0.14</td><td>+0.01</td><td>−0.21</td></tr>
+<tr><td>Low volatility 63d</td><td>−0.27</td><td>−0.33</td><td>−0.44</td><td>−0.62</td></tr>
+<tr><td>Reversal 1m</td><td>−0.47</td><td>−0.55</td><td>−0.70</td><td>−0.96</td></tr>
+</table>
+
+The leaderboard therefore carries a Sharpe at 500 basis points column for every contestant
+that shorts, beside the one at 20 basis points of turnover cost, so neither assumption can
+carry a result on its own.
+
 This is what the literature would predict for four recent years. Momentum is the only
 factor with a positive net edge on both rules, and even so its interval spans zero:
 four years of a fifty name decile book is not enough to separate a Sharpe of 0.2 from
@@ -327,12 +343,34 @@ python scripts/make_figures.py pit
 3. **A technical report with a DOI**, so the method can be cited rather than linked. Anyone whose contestant is merged and survives a year of forward track is a named author on it.
 4. **A year of forward track.** The workflow is armed; the calendar does the rest.
 
+## What a skeptic should attack, and what happens when they do
+
+Two things a quant would go for first, both checked rather than argued.
+
+**"Your dead companies quietly disappear before they lose the money."** They do not. The
+bar holds Silicon Valley Bank through its 60.4% day on 8 March 2023 and keeps it until the
+index dropped it on the 15th, a cumulative 84.6% loss over its scored life. It holds First
+Republic to a 90.5% single day and a 99.8% loss before removal on 4 May. Those are the two
+largest single day losses in the whole panel, and they are in the bar's return, not
+excluded from it. Exactly one name in the entire window stops trading more than a week
+before its removal date, and that is Juniper being acquired.
+
+**"Your membership dates leak."** Index changes are announced several days before they take
+effect, so a table built from announcements would drop a failing name early and quietly
+avoid part of its loss. The table here uses effective dates: Silicon Valley Bank leaves on
+15 March 2023 and First Republic on 4 May 2023, both the effective dates, not the earlier
+announcements. Additions are treated the same way, so the benchmark also forgoes the pop
+that a stock gets on the announcement of its inclusion.
+
 ## Honest limits
 
 * The season one universe is a survivor universe: 48 names chosen in August 2026, ten of which joined the index after 2005. It flatters every contestant and the bar equally, so Net Edge survives it. Absolute numbers do not.
-* Costs are a flat 10 bps. No market impact, no borrow, no slippage that grows with size. It is the friction a small book pays.
-* Long or flat only, no leverage.
-* Eight months is not evidence. Check back in a year.
+* The contestants were trained on that survivor universe and evaluated on the point in time one, which removes the hindsight from the evaluation but not from the training. `scripts/train_on_pit.py` is the fix and season three is the run.
+* Costs are a flat 10 bps of turnover with no market impact and no size dependence, which is the friction a small book pays, plus a borrow charge that is a constant rather than a per name rate. The sensitivity columns exist because neither number should be trusted alone.
+* Five hundred large capitalization names. Most published cross sectional edge lives in smaller companies, which this universe does not contain.
+* Net Edge compares Sharpe ratios. A contestant whose value is a lower drawdown, or a low correlation with everything else, is not measured by it.
+* The leakage check is a smell test, not a proof. A determined submitter could add noise until the information coefficient drops under the threshold. What it catches is accidents, which is most of them.
+* Eight months of forward track is not evidence. Check back in a year.
 
 ## Cite
 
