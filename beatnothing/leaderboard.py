@@ -57,6 +57,14 @@ ROOT = find_root()
 SUBMISSIONS = ROOT / "submissions"
 LEADERBOARD = ROOT / "leaderboard"
 
+# Two tracks share one engine and one scoring rule and differ only in the universe.
+TRACKS = {
+    "survivor48": {"actual": "data/actual_returns.parquet", "submissions": "submissions", "out": "leaderboard",
+                   "universe": "48 large cap names chosen in August 2026 (a survivor universe)"},
+    "pit": {"actual": "data/pit/actual_returns_pit.parquet", "submissions": "submissions_pit", "out": "leaderboard/pit",
+            "universe": "every S&P 500 member on each day, dead names included (point in time)"},
+}
+
 
 def load_actual(path: Path) -> pd.DataFrame:
     """Realised next day returns, wide (dates x tickers)."""
@@ -137,9 +145,10 @@ def score_signal(signal_path: Path, actual_path: Path, kind: str = "predictions"
     return res
 
 
-def build(actual_path: Path, n_boot: int = 2000, root: Path | None = None) -> dict:
+def build(actual_path: Path, n_boot: int = 2000, root: Path | None = None, submissions: Path | None = None,
+          universe: str | None = None) -> dict:
     root = root or ROOT
-    submissions = root / "submissions"
+    submissions = submissions or root / "submissions"
     actual = load_actual(actual_path)
     bars = load_bars(root / "data" / "benchmark_returns.parquet")
     inv_all = bars[INVESTABLE_BAR] if bars is not None and INVESTABLE_BAR in bars.columns else None
@@ -148,7 +157,7 @@ def build(actual_path: Path, n_boot: int = 2000, root: Path | None = None) -> di
     for name, (s, e) in WINDOWS.items():
         a = actual.loc[(actual.index >= s) & (actual.index <= e)]
         ubars[name] = bar_returns(a)
-    board = {"windows": WINDOWS, "cost_bps": COST_BPS,
+    board = {"windows": WINDOWS, "cost_bps": COST_BPS, "universe": universe,
              "bar": "always long, equal weight, same universe, same costs",
              "investable_bar": f"{INVESTABLE_BAR}, the equal weight S&P 500 ETF, buy and hold" if inv_all is not None else None,
              "entries": []}
@@ -173,8 +182,10 @@ def _fmt(x, kind="f2"):
 def to_markdown(board: dict) -> str:
     """Leaderboard as HTML tables (no markdown table syntax), one per window."""
     has_inv = board.get("investable_bar") is not None
-    out = ["# Leaderboard", "",
-           f"Universe bar: {board['bar']}. Costs: {board['cost_bps']:.0f} bps per unit of turnover. "
+    out = ["# Leaderboard", ""]
+    if board.get("universe"):
+        out += [f"Universe: {board['universe']}.", ""]
+    out += [f"Universe bar: {board['bar']}. Costs: {board['cost_bps']:.0f} bps per unit of turnover. "
            "Net Edge = net Sharpe minus the universe bar's net Sharpe on the same days, with a 95% paired "
            "stationary bootstrap interval (2,000 resamples, mean block 10 days). A contestant "
            "clears a bar only if the whole interval is above zero."]
@@ -223,11 +234,14 @@ def to_markdown(board: dict) -> str:
     return "\n".join(out) + "\n"
 
 
-def main(actual_path: str | Path | None = None, n_boot: int = 2000, root: str | Path | None = None):
+def main(actual_path: str | Path | None = None, n_boot: int = 2000, root: str | Path | None = None,
+         track: str = "survivor48"):
     root = Path(root) if root else ROOT
-    actual_path = Path(actual_path) if actual_path else root / "data" / "actual_returns.parquet"
-    board = build(actual_path, n_boot=n_boot, root=root)
-    out_dir = root / "leaderboard"
+    cfg = TRACKS[track]
+    actual_path = Path(actual_path) if actual_path else root / cfg["actual"]
+    board = build(actual_path, n_boot=n_boot, root=root, submissions=root / cfg["submissions"], universe=cfg["universe"])
+    board["track"] = track
+    out_dir = root / cfg["out"]
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "leaderboard.json").write_text(json.dumps(board, indent=2, default=str), encoding="utf-8")
     (out_dir / "LEADERBOARD.md").write_text(to_markdown(board), encoding="utf-8")
@@ -236,4 +250,4 @@ def main(actual_path: str | Path | None = None, n_boot: int = 2000, root: str | 
 
 if __name__ == "__main__":
     import sys
-    main(sys.argv[1] if len(sys.argv) > 1 else None)
+    main(track=sys.argv[1] if len(sys.argv) > 1 else "survivor48")

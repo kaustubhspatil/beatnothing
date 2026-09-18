@@ -1,6 +1,11 @@
 # Submitting a contestant
 
-A contestant is a folder under `submissions/<name>/` with two files.
+There are two tracks, one engine. `submissions/` scores on the 48 name survivor universe
+of season one; `submissions_pit/` scores on the point in time universe, every S&P 500
+member on each day, dead names included. Submit to the point in time track unless you
+have a reason not to: it is the one where the bar could not choose its names.
+
+A contestant is a folder under the track's submissions directory with two files.
 
 **`signal.parquet`**, long format, three columns:
 

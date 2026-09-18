@@ -49,16 +49,17 @@ def fetch(t: str, key: str):
     return 200, r.json()
 
 
-def main(spacing: float, save_prices: bool) -> None:
+def main(spacing: float, save_prices: bool, tickers: str | None = None) -> None:
     key = token()
-    gone = json.loads((ROOT / "leaderboard" / "coverage_report.json").read_text(encoding="utf-8"))["left_and_unavailable_tickers"]
+    gone = ([t.strip() for t in tickers.split(",") if t.strip()] if tickers else
+            json.loads((ROOT / "leaderboard" / "coverage_report.json").read_text(encoding="utf-8"))["left_and_unavailable_tickers"])
     done = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
     seed = ROOT / "leaderboard" / "tiingo_coverage.json"
     if seed.exists():                       # fold in the five name probe so they are not fetched twice
         for row in json.loads(seed.read_text(encoding="utf-8"))["detail"]:
             done.setdefault(row["ticker"], {"status": 200 if row["rows"] else 404, "rows": row["rows"],
                                             "first": row["first"], "last": row["last"]})
-    todo = [t for t in gone if t not in done]
+    todo = [t for t in gone if t not in done or (save_prices and not (CACHE / f"{t}.csv").exists() and done[t]["rows"] >= 250)]
     print(f"{len(gone)} missing leavers, {len(done)} already probed, {len(todo)} to fetch, {spacing:.0f}s apart", flush=True)
     if save_prices:
         CACHE.mkdir(parents=True, exist_ok=True)
@@ -88,4 +89,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--spacing", type=float, default=100.0)
     ap.add_argument("--save-prices", action="store_true")
-    main(ap.parse_args().spacing, ap.parse_args().save_prices)
+    ap.add_argument("--tickers", default=None, help="comma separated list instead of the coverage report")
+    a = ap.parse_args()
+    main(a.spacing, a.save_prices, a.tickers)

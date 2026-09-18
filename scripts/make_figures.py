@@ -21,6 +21,8 @@ from beatnothing import Backtest, Membership, coverage_report
 from beatnothing.leaderboard import LEADERBOARD, ROOT, SUBMISSIONS, WINDOWS, load_actual, load_submission
 
 FIG = LEADERBOARD / "figures"
+UNIVERSE_LABEL = "the same 48 survivor names"
+BARS_TITLE = "Two bars: the universe chosen with hindsight against the index that could not choose"
 BLUE, ORANGE, AQUA, YELLOW, MUTED, INK, INK2, GRID = ("#2a78d6", "#eb6834", "#1baf7a", "#eda100",
                                                       "#898781", "#0b0b0b", "#52514e", "#e1e0d9")
 GOOD, BAD = "#0ca30c", "#d03b3b"
@@ -70,7 +72,8 @@ def fig_net_edge(board):
         ax.set_title(f"{wname.replace('_', ' ')}: {s} to {e}", pad=8)
     axes[0].set_yticks(np.arange(len(order)))
     axes[0].set_yticklabels([label(n) for n in order])
-    note = "Filled: against the universe bar (always long the same 48 names). Green would mean the whole interval clears zero; red, entirely below; grey straddles zero. Nothing is green."
+    note = (f"Filled: against the universe bar (always long {UNIVERSE_LABEL}). Green would mean the whole interval clears zero; "
+            "red, entirely below; grey straddles zero. Nothing is green.")
     if has_inv:
         note += "\nHollow orange: the same contestant against RSP, the investable equal weight index that still holds the names that died."
     fig.text(0.01, 0.995, note, fontsize=9.2, color=INK2, va="top")
@@ -90,7 +93,7 @@ def fig_bars(actual, bars):
     rsp = bars["RSP"].reindex(uni.index).fillna(0.0)
     spy = bars["SPY"].reindex(uni.index).fillna(0.0) if "SPY" in bars.columns else None
     fig, ax = plt.subplots(figsize=(11, 5))
-    for series, name, color, ls in [(uni, "48 survivor names, equal weight, the universe bar", INK, "--"),
+    for series, name, color, ls in [(uni, f"the universe bar: {UNIVERSE_LABEL}, equal weight", INK, "--"),
                                      (rsp, "RSP: every index member, dead ones included", ORANGE, "-"),
                                      (spy, "SPY: cap weighted index", MUTED, ":")]:
         if series is None:
@@ -103,7 +106,7 @@ def fig_bars(actual, bars):
     ax.text(pd.Timestamp("2026-01-05"), ax.get_ylim()[1] * 0.98, "2026, post cutoff", fontsize=8.5, color=INK2, va="top")
     ax.set_xlim(uni.index[0], uni.index[-1] + pd.Timedelta(days=430))
     ax.set_ylabel("growth of $1")
-    ax.set_title("Two bars: the universe chosen with hindsight against the index that could not choose")
+    ax.set_title(BARS_TITLE)
     fig.savefig(FIG / "two_bars.png")
     plt.close(fig)
 
@@ -187,10 +190,19 @@ def fig_survivorship(available):
 
 
 if __name__ == "__main__":
+    import sys
+    from beatnothing.leaderboard import TRACKS, load_bars
+    track = sys.argv[1] if len(sys.argv) > 1 else "survivor48"
+    cfg = TRACKS[track]
+    UNIVERSE_LABEL = "the same 48 survivor names" if track == "survivor48" else "every S&P 500 member on each day"
+    BARS_TITLE = ("Two bars: the universe chosen with hindsight against the index that could not choose" if track == "survivor48"
+                  else "Two bars: the point in time universe against the ETF that holds it")
+    LEADERBOARD = ROOT / cfg["out"]
+    SUBMISSIONS = ROOT / cfg["submissions"]
+    FIG = LEADERBOARD / "figures"
     FIG.mkdir(parents=True, exist_ok=True)
     board = json.loads((LEADERBOARD / "leaderboard.json").read_text(encoding="utf-8"))
-    actual = load_actual(ROOT / "data" / "actual_returns.parquet")
-    from beatnothing.leaderboard import load_bars
+    actual = load_actual(ROOT / cfg["actual"])
     bars = load_bars(ROOT / "data" / "benchmark_returns.parquet")
     fig_net_edge(board)
     fig_cost_inversion(board)

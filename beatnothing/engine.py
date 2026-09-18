@@ -48,7 +48,8 @@ class Backtest:
             weights = weights_from_predictions(predictions, actual)
         else:
             weights, actual = weights.align(actual, join="inner")
-            weights = weights.fillna(0.0)
+            # no position in a name on a day it has no realised return (not a member, not listed)
+            weights = weights.fillna(0.0).where(actual.notna(), 0.0)
             if (weights < -1e-12).any().any():
                 raise ValueError("weights must be non negative (no shorting)")
             if (weights.sum(axis=1) > 1.0 + 1e-9).any():
