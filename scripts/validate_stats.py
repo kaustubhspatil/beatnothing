@@ -149,20 +149,24 @@ def figure(report: dict) -> None:
                          "axes.titleweight": "bold", "axes.titlelocation": "left", "axes.titlesize": 12,
                          "xtick.color": MUTED, "ytick.color": MUTED, "font.size": 10, "savefig.dpi": 150,
                          "savefig.bbox": "tight"})
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.2))
+    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.6))
 
     ax = axes[0]
     size, power = report["size"], report["power"]
     x = np.arange(2)
     ax.bar(x - 0.2, [size["percentile"], power["percentile"]], 0.4, color=MUTED, label="percentile bootstrap")
     ax.bar(x + 0.2, [size["ledoit_wolf"], power["ledoit_wolf"]], 0.4, color=BLUE, label="studentized, HAC")
+    for xi, vals in zip(x, [(size["percentile"], size["ledoit_wolf"]), (power["percentile"], power["ledoit_wolf"])]):
+        for dx, v in zip((-0.2, 0.2), vals):
+            ax.text(xi + dx, v + 0.012, f"{v:.3f}".lstrip("0"), ha="center", fontsize=8.5, color=INK)
     ax.axhline(0.05, color=BAD, ls="--", lw=1.2)
-    ax.text(1.45, 0.06, "five percent, where size should sit", color=BAD, fontsize=8.5, ha="right")
+    ax.text(-0.45, 0.062, "five percent", color=BAD, fontsize=8.5, ha="left")
     ax.set_xticks(x)
     ax.set_xticklabels(["no real edge\n(should be 0.05)", "a real edge\n(higher is better)"])
+    ax.set_ylim(0, 0.52)
     ax.set_ylabel("share of simulations claiming an edge")
-    ax.set_title("One contestant: does the test keep its word?")
-    ax.legend(frameon=False, fontsize=8.5, loc="upper left")
+    ax.set_title("Does the test keep its word?")
+    ax.legend(frameon=False, fontsize=8.5, loc="upper left", bbox_to_anchor=(0.0, 0.92))
 
     ax = axes[1]
     fw = report["familywise"]
@@ -172,10 +176,10 @@ def figure(report: dict) -> None:
         ax.text(i, v + 0.015, f"{v:.0%}", ha="center", fontweight="bold", color=INK)
     ax.axhline(0.05, color=MUTED, ls="--", lw=1.2)
     ax.set_xticks([0, 1])
-    ax.set_xticklabels(["tested separately", "Romano and Wolf\nstepdown"])
+    ax.set_xticklabels(["tested separately", "after the stepdown"])
     ax.set_ylim(0, max(bars) * 1.3 + 0.05)
     ax.set_ylabel("share of boards with a false winner")
-    ax.set_title(f"A board of {fw['n_contestants']} worthless contestants")
+    ax.set_title(f"{fw['n_contestants']} worthless contestants")
 
     ax = axes[2]
     ov = report["overfitting"]
@@ -184,16 +188,16 @@ def figure(report: dict) -> None:
     for i, v in enumerate(vals):
         ax.text(i, v + 0.015, f"{v:.0%}", ha="center", fontweight="bold", color=INK)
     ax.axhline(0.5, color=MUTED, ls="--", lw=1.2)
-    ax.text(1.45, 0.52, "one half, where noise belongs", color=MUTED, fontsize=8.5, ha="right")
+    ax.text(1.42, 0.53, "one half, where noise belongs", color=MUTED, fontsize=8.5, ha="right")
     ax.set_xticks([0, 1])
     ax.set_xticklabels([f"{ov['n_variants']} variants\nof noise", f"{ov['n_variants']} variants,\none of them real"])
-    ax.set_ylim(0, 0.75)
+    ax.set_ylim(0, 0.78)
     ax.set_ylabel("probability of backtest overfitting")
     ax.set_title("A submitter who tried many things")
 
     fig.suptitle("The statistics, measured on simulated markets with fat tails and clustered volatility",
-                 x=0.005, ha="left", fontsize=13, fontweight="bold")
-    fig.tight_layout(rect=(0, 0, 1, 0.94))
+                 x=0.006, ha="left", fontsize=13, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.92), w_pad=3.0)
     (OUT / "figures").mkdir(parents=True, exist_ok=True)
     fig.savefig(OUT / "figures" / "stats_validation.png")
     print("figure written")
