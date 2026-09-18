@@ -7,5 +7,6 @@
   "description": "Two layer LSTM over 60 day windows of the same features. Frozen 2026 08 20.",
   "universe": "48 large cap US stocks (capstone universe)",
   "model_sha256": "602bd915fac50520c0e6f07646ed3c14d15f07f8a88a585cdec0728016040ecb",
-  "model_file": "lstm_60d.pt"
+  "model_file": "lstm_60d.pt",
+  "signal_sha256": "621ec131fd947d6b19df17f7c200aea0353b57ecb015f1187669e0698bd61b9c"
 }

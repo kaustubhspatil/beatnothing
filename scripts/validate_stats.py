@@ -36,22 +36,45 @@ OUT = ROOT / "leaderboard"
 TRADING_DAYS = 252
 
 
-def simulate(T: int, rng: np.random.Generator, edge: float = 0.0, rho: float = 0.9,
-             mu: float = 0.0004, vol: float = 0.011, nu: float = 5.0, persistence: float = 0.94):
-    """
-    A bar and a strategy with fat tails and clustered volatility. The strategy shares the
-    bar's shocks with correlation rho, which is what makes a leaderboard hard: contestants
-    are nearly the bar. `edge` adds to the strategy's daily mean.
-    """
+def _volatility_path(T: int, rng: np.random.Generator, vol: float, persistence: float) -> np.ndarray:
     h = np.empty(T)
     h[0] = vol
     for t in range(1, T):                                   # a simple persistent volatility process
         h[t] = np.sqrt(persistence * h[t - 1] ** 2 + (1 - persistence) * vol ** 2 * rng.gamma(2.0, 0.5))
-    z1 = rng.standard_t(nu, T) / np.sqrt(nu / (nu - 2))
-    z2 = rng.standard_t(nu, T) / np.sqrt(nu / (nu - 2))
-    bar = mu + h * z1
-    strat = mu + edge + h * (rho * z1 + np.sqrt(1 - rho ** 2) * z2)
-    return strat, bar
+    return h
+
+
+def _innovations(T: int, rng: np.random.Generator, nu: float) -> np.ndarray:
+    return rng.standard_t(nu, T) / np.sqrt(nu / (nu - 2))    # unit variance, fat tails
+
+
+def simulate_board(T: int, n_contestants: int, rng: np.random.Generator, edge: float = 0.0, rho: float = 0.9,
+                   mu: float = 0.0004, vol: float = 0.011, nu: float = 5.0, persistence: float = 0.94):
+    """
+    One bar and `n_contestants` strategies, all with fat tails and clustered volatility.
+
+    Every strategy shares the bar's shocks with correlation rho, which is what makes a
+    leaderboard hard: contestants are nearly the bar. The construction gives each strategy
+    the same mean and the same unconditional variance as the bar, so when `edge` is zero
+    every contestant has exactly the bar's true Sharpe and any win is a false one. Getting
+    this wrong is easy and silent: adding zero mean noise to the bar leaves the mean alone
+    but raises the variance, which makes every contestant genuinely worse than the bar and
+    a familywise experiment that can never produce a false winner.
+    """
+    h = _volatility_path(T, rng, vol, persistence)
+    z_bar = _innovations(T, rng, nu)
+    bar = mu + h * z_bar
+    strategies = []
+    for _ in range(n_contestants):
+        z = _innovations(T, rng, nu)
+        strategies.append(mu + edge + h * (rho * z_bar + np.sqrt(1 - rho ** 2) * z))
+    return strategies, bar
+
+
+def simulate(T: int, rng: np.random.Generator, **kw):
+    """One strategy and its bar."""
+    strategies, bar = simulate_board(T, 1, rng, **kw)
+    return strategies[0], bar
 
 
 def rejection_rates(sims: int, boot: int, T: int, edge: float, seed: int) -> dict:
@@ -92,12 +115,9 @@ def familywise(sims: int, boot: int, T: int, n_contestants: int, seed: int) -> d
     any_raw = any_adj = 0
     t0 = time.time()
     for i in range(sims):
-        _, bar = simulate(T, rng)
-        strategies, bars = {}, {}
-        for k in range(n_contestants):
-            s, _ = simulate(T, rng)
-            strategies[f"c{k}"] = bar + (s - s.mean()) * 0.35 + (s.mean() - bar.mean()) * 0.0
-            bars[f"c{k}"] = bar
+        board, bar = simulate_board(T, n_contestants, rng)
+        strategies = {f"c{k}": s for k, s in enumerate(board)}
+        bars = {f"c{k}": bar for k in range(n_contestants)}
         res = joint_sharpe_tests(strategies, bars, n_boot=boot, seed=i)["contestants"]
         any_raw += any(r["p_value"] <= 0.05 for r in res.values())
         any_adj += any(r["clears_bar_fwe"] for r in res.values())
@@ -110,7 +130,7 @@ def familywise(sims: int, boot: int, T: int, n_contestants: int, seed: int) -> d
 
 def overfitting(T: int, n_variants: int, seed: int) -> dict:
     rng = np.random.default_rng(seed)
-    noise = np.column_stack([simulate(T, rng)[0] for _ in range(n_variants)])
+    noise = np.column_stack(simulate_board(T, n_variants, rng)[0])
     real = noise.copy()
     real[:, n_variants // 3] += 0.0009                      # one variant is genuinely better
     return {"noise": pbo_cscv(noise, n_splits=10)["pbo"], "with_a_real_edge": pbo_cscv(real, n_splits=10)["pbo"],

@@ -10,5 +10,6 @@
     "tokenizer": "NeoQuasar/Kronos-Tokenizer-base"
   },
   "context_bars": 400,
-  "samples": 3
+  "samples": 3,
+  "signal_sha256": "97a4f270d7e7a55c09cac52ff335ccb974e00efee1c49f445c5264032893384e"
 }

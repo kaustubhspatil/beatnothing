@@ -11,5 +11,6 @@
     "seed43": "19800adf0d7bdfee62fe0f78fb1a66d56ee5bac76287a0a67ea785d0efe6c43c",
     "seed44": "c614f7856be972ec0abfd5d146b427ce231ecd5e8d0f482f9f204dccfa8e5107"
   },
-  "lambda_bps": 0
+  "lambda_bps": 0,
+  "signal_sha256": "780aee0b1c0dbe816f4340f890efe2bc103899ec95d60c169f9885e1ac1b7978"
 }

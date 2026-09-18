@@ -24,7 +24,23 @@ def main() -> int:
     ap.add_argument("--track", choices=list(TRACKS) + ["all"], default="all")
     ap.add_argument("--folder", default=None, help="check a single submission folder")
     ap.add_argument("--json", dest="as_json", action="store_true")
+    ap.add_argument("--write-hash", action="store_true",
+                    help="pin each signal file's sha256 into its meta.json, then check")
     args = ap.parse_args()
+
+    if args.write_hash:
+        import hashlib
+        targets = [Path(args.folder)] if args.folder else [
+            p for t, c in TRACKS.items() if (ROOT / c["submissions"]).exists()
+            for p in sorted((ROOT / c["submissions"]).iterdir()) if p.is_dir()]
+        for folder in targets:
+            sig, mp = folder / "signal.parquet", folder / "meta.json"
+            if not (sig.exists() and mp.exists()):
+                continue
+            meta = json.loads(mp.read_text(encoding="utf-8"))
+            meta["signal_sha256"] = hashlib.sha256(sig.read_bytes()).hexdigest()
+            mp.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+        print(f"pinned {len(targets)} signal hashes")
 
     reports = []
     if args.folder:
