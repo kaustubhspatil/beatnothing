@@ -35,6 +35,15 @@ def series(values, places: int) -> list[float]:
     return [round(float(v), places) for v in np.nan_to_num(np.asarray(values, dtype=float))]
 
 
+def _pub(published: dict, name: str, window: str, key: str):
+    """A field from the published leaderboard, or None when it was not scored there."""
+    row = published.get(name, {}).get(window)
+    if row is None or key not in row:
+        return None
+    v = row[key]
+    return round(v, 6) if isinstance(v, float) else v
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -43,6 +52,9 @@ def main() -> None:
     args = ap.parse_args()
 
     cfg = TRACKS[args.track]
+    board_path = ROOT / cfg["out"] / "leaderboard.json"
+    published = {e["meta"]["name"]: e["windows"]
+                 for e in json.loads(board_path.read_text(encoding="utf-8"))["entries"]}
     actual = load_actual(ROOT / cfg["actual"])
     folders = sorted(p for p in (ROOT / cfg["submissions"]).iterdir() if p.is_dir())
 
@@ -86,6 +98,17 @@ def main() -> None:
                 "is_bar": meta["name"] == "always_long",
                 "bar_used": "cash" if dollar_neutral else "universe",
                 "published_net_sharpe": round(stats["net_sharpe"], 6),
+                # The published verdict, carried alongside the series. A positive point
+                # estimate is not "beating the bar": five contestants are above zero on the
+                # sealed window and not one has an interval that clears it. A demo that
+                # counts point estimates would make exactly the mistake this benchmark
+                # exists to prevent, so the interval travels with the number.
+                "net_edge": _pub(published, meta["name"], wname, "net_edge"),
+                "ci_low": _pub(published, meta["name"], wname, "ci_low"),
+                "ci_high": _pub(published, meta["name"], wname, "ci_high"),
+                "clears_bar": _pub(published, meta["name"], wname, "clears_bar"),
+                "clears_bar_fwe": _pub(published, meta["name"], wname, "clears_bar_fwe"),
+                "p_value_fwe": _pub(published, meta["name"], wname, "p_value_fwe"),
                 "gross": series(gross, DP["gross"]),
                 "turn": series(bt.turnover, DP["turn"]),
                 "short": series(short, DP["short"]),
