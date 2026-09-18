@@ -298,15 +298,26 @@ beatnothing members 2020-03-16
 beatnothing leaderboard --root .
 ```
 
-To rebuild everything from scratch:
+Every number in the tables above rebuilds from a clean clone in about two minutes, with
+no data download and no API key, because the realised returns and every contestant's
+frozen signal are in the repository. This was checked from a fresh clone into an empty
+environment, not assumed:
 
 ```bash
 git clone https://github.com/kaustubhspatil/beatnothing && cd beatnothing
-pip install -e ".[data,figures,dev]"
-pytest -q
-python scripts/download_data.py          # prices, features, realised returns, manifest
-beatnothing leaderboard
-python scripts/make_figures.py
+pip install -e ".[dev]"
+pytest -q                                # 50 tests: engine, canaries, statistics, submission rules
+beatnothing leaderboard --track pit      # rebuilds the board and its verdicts
+```
+
+To go further back, to the raw prices and the universe itself:
+
+```bash
+pip install -e ".[data,figures]"
+python scripts/download_data.py          # prices, features, realised returns, a hashed manifest
+python scripts/build_pit_universe.py     # the point in time universe, needs a free Tiingo token
+python scripts/validate_stats.py         # remeasure the statistics themselves
+python scripts/make_figures.py pit
 ```
 
 ## Roadmap
