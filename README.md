@@ -16,7 +16,10 @@ sectional ranking network, and a 2026 financial foundation model used with no tr
 all. **None of them clears the bar.**
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/kaustubhspatil/beatnothing/master/leaderboard/figures/net_edge.png" width="900" alt="Net Edge with 95% intervals for every contestant, on the sealed 2022 to 2025 window and on 2026 to date">
+  <img src="https://raw.githubusercontent.com/kaustubhspatil/beatnothing/master/leaderboard/pit/figures/net_edge.png" width="900" alt="Net Edge with 95% intervals for all twenty five contestants on the point in time universe, on the sealed 2022 to 2025 window and on 2026 to date">
+</p>
+<p align="center">
+  <em>Every contestant, both windows, against the point in time bar. Green would mean the whole interval clears zero. Nothing is green.</em>
 </p>
 
 ```bash
@@ -38,6 +41,13 @@ pip install beatnothing
 
 Sealed window 2022 to 2025, 48 large cap US stocks, net of 10 bps. Full detail with
 drawdowns, exposure and dollars in [`leaderboard/LEADERBOARD.md`](https://github.com/kaustubhspatil/beatnothing/blob/master/leaderboard/LEADERBOARD.md).
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kaustubhspatil/beatnothing/master/leaderboard/figures/net_edge.png" width="900" alt="Net Edge with 95% intervals for the nine season one contestants on the 48 name survivor universe">
+</p>
+<p align="center">
+  <em>The nine season one entries on the survivor universe. The chart at the top of this page is the same picture with every contestant, on the universe that did not know the future.</em>
+</p>
 
 <table>
 <tr><th>Contestant</th><th>Net Edge</th><th>95% interval</th><th>Edge vs RSP</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Turnover a year</th></tr>
@@ -65,7 +75,7 @@ bar. The leaderboard says so instead of ranking noise.
 ## What the first season taught us
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/kaustubhspatil/beatnothing/master/leaderboard/figures/cost_inversion.png" width="900" alt="Gross versus net Sharpe for every contestant on the sealed window">
+  <img src="https://raw.githubusercontent.com/kaustubhspatil/beatnothing/master/leaderboard/figures/cost_inversion.png" width="900" alt="Gross versus net Sharpe for each season one contestant on the sealed window">
 </p>
 
 * **Costs reorder the field.** The 1D CNN has the highest gross Sharpe of anything, 1.08, and a negative net Sharpe, because it turns the book over 265 times a year. Gross rank is not net rank. Papers that report gross numbers are reporting a different sport.
