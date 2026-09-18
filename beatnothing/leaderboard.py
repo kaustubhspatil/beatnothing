@@ -122,6 +122,11 @@ def score_window(actual: pd.DataFrame, wide: pd.DataFrame, kind: str, start, end
     b = pd.Series(0.0, index=r.index) if dollar_neutral else bar.reindex(r.index).fillna(0.0)
     grid = cost_grid(a, grid=(0, 10, 20), **kw)
     stats.update({"bar_sharpe": sharpe(b.values), "gross_sharpe": grid[0], "net_sharpe_20bps": grid[20]})
+    if stats["avg_short_exposure"] > 0.01:
+        # The bottom decile of almost any screen is where hard to borrow names live, so a
+        # flat fifty basis points a year is the optimistic case. Price the pessimistic one.
+        stats["net_sharpe_borrow_500bps"] = Backtest(a, cost_bps=cost_bps, borrow_bps_annual=500.0, **kw
+                                                     ).stats()["net_sharpe"]
     if investable is not None:
         inv = investable.reindex(r.index)
         ok = inv.notna().values
@@ -235,7 +240,8 @@ def to_markdown(board: dict) -> str:
         head = ("<tr><th>Contestant</th><th>Rule</th><th>Net Edge</th><th>95% CI</th><th>p</th><th>p adj</th>"
                 "<th>Clears bar</th>"
                 + ("<th>Edge vs RSP</th><th>95% CI</th>" if has_inv else "")
-                + "<th>Net Sharpe</th><th>Gross Sharpe</th><th>Sharpe at 20 bps</th><th>Max DD</th>"
+                + "<th>Net Sharpe</th><th>Gross Sharpe</th><th>Sharpe at 20 bps</th>"
+                  "<th>Sharpe at 500 bps borrow</th><th>Max DD</th>"
                   "<th>Turnover/yr</th><th>Avg exposure</th><th>P&amp;L on $1M</th></tr>")
         out += [f"## {wname.replace('_', ' ')}  ({s} to {e})", "", "<table>", head]
         for meta, r in rows:
@@ -254,6 +260,7 @@ def to_markdown(board: dict) -> str:
                 f"<td>{r.get('p_value', float('nan')):.3f}</td><td>{r.get('p_value_fwe', float('nan')):.3f}</td>"
                 f"<td>{verdict}</td>{inv_cells}<td>{_fmt(r['net_sharpe'])}</td>"
                 f"<td>{_fmt(r['gross_sharpe'])}</td><td>{_fmt(r['net_sharpe_20bps'])}</td>"
+                f"<td>{_fmt(r['net_sharpe_borrow_500bps']) if 'net_sharpe_borrow_500bps' in r else ''}</td>"
                 f"<td>{_fmt(r['max_drawdown'], 'pct')}</td><td>{_fmt(r['annual_turnover'], 't')}</td>"
                 f"<td>{_fmt(r['avg_exposure'], 'pct1')}</td><td>{_fmt(r['dollar_pnl'], 'usd')}</td></tr>")
         out += ["</table>", ""]
