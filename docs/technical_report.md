@@ -216,11 +216,38 @@ construction, and even so its interval spans zero over four years. Short term re
 destroyed by its own turnover. Low volatility is flat. A harness that had shown momentum
 at a Sharpe ratio of two would have been reporting a bug.
 
+**The one contestant with real information cannot trade it.** Retraining every
+architecture on the point in time universe, which removes the last hindsight, adds a model
+trained on the within day cross sectional rank of the next day return rather than the
+return itself, so that it cannot inherit the market's move. It has the highest information
+coefficient of anything in this report, 0.0154 at a one day horizon, and the highest gross
+Sharpe ratio of any learned contestant, 0.72. Rebalanced daily it turns its book over 222
+times a year and pays 2.22 of Sharpe ratio to do so, three times what it produces gross.
+Held for a week its information coefficient is 0.0007; held for a month it is negative. The
+information is real, and it is gone within five trading days, which is faster than it can
+be harvested at any cost assumption we can defend. We regard this as the most useful
+single result the benchmark has produced: it separates the question of whether a model
+knows anything from the question of whether that knowledge is worth acting on, and the two
+answers are different.
+
+**A note on how easily this is misread.** An earlier version of our own reporting credited
+that family of models with an information coefficient of 0.028, which would have been a
+respectable finding. It was an artifact. The model in question, gradient boosted trees
+early stopped on validation loss, emits a single constant prediction for every name on
+almost every day, and the coefficient was being averaged over the five percent of days on
+which it happened to vary at all. Reporting the share of days a signal can actually rank,
+beside the coefficient itself, is the fix, and it turns a respectable number into a zero.
+We mention it because the same mistake is available to anyone computing an information
+coefficient over a filtered subset of days.
+
 ## 6. Limitations
 
-The contestants in this report were trained on the survivor universe and evaluated on the
-point in time one, which removes the hindsight from the evaluation but not from the
-training. Extending the universe to 2005 and retraining is the next version. Costs are a
+The point in time universe reaches back to 2013 and no further, because the free sources
+we rely on do not retain the companies that failed in the 2008 crisis: Lehman Brothers,
+Bear Stearns, Washington Mutual, Countrywide, Fannie Mae and Freddie Mac are all absent.
+Building a longer history on these sources would reintroduce survivorship bias into the
+single window where it would most distort the answer, so we stop. No contestant here has
+been tested in a crisis. Costs are a
 flat ten basis points with no market impact and no size dependence, which is the friction
 of a small book. The borrow charge is a constant and does not model availability. Prices
 are adjusted closes from a free provider and the membership record is community
