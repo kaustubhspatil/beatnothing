@@ -17,8 +17,9 @@ def _actual(n=400, k=30, seed=3):
 def _write(tmp_path, folder_name, wide, **meta_extra):
     d = tmp_path / folder_name
     d.mkdir(parents=True, exist_ok=True)
-    long = wide.stack().rename("value").reset_index()
-    long.columns = ["Date", "Ticker", "value"]
+    # melt, not stack: older pandas drops missing values when stacking, which would quietly
+    # remove the very hole that test_missing_values_are_refused is checking for
+    long = wide.rename_axis("Date").reset_index().melt(id_vars="Date", var_name="Ticker", value_name="value")
     long.to_parquet(d / "signal.parquet", index=False)
     meta = {"name": folder_name, "kind": "predictions", "description": "a test entry",
             "registered": "2026-09-18", "model_sha256": "0" * 64}
