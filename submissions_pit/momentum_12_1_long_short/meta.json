@@ -7,5 +7,7 @@
   "registered": "2026-09-18",
   "universe": "point in time S&P 500 membership",
   "rebalance": "monthly, first trading day",
-  "description": "Twelve month momentum skipping the most recent month (Jegadeesh and Titman). Monthly rebalanced. Long the top decile, short the bottom decile, dollar neutral, 50 bps a year borrow."
+  "description": "Twelve month momentum skipping the most recent month (Jegadeesh and Titman). Monthly rebalanced. Long the top decile, short the bottom decile, dollar neutral, 50 bps a year borrow.",
+  "source_sha256": "9cd1999448768826c020d8da7277a1b137a2c72d16ebc7e09049c27599afc1a2",
+  "source_file": "factor_contestants.py"
 }

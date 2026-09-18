@@ -14,6 +14,7 @@ predictions the engine ranks; the rule and quantile live in meta.json.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -38,13 +39,20 @@ def submit(name: str, wide: pd.DataFrame, members: pd.DataFrame, rule: str, quan
     long.columns = ["Date", "Ticker", "value"]
     long = long.merge(members, on=["Date", "Ticker"], how="inner")     # only names in the index that day
     long = long[long["Date"] >= EVAL_START]
+    # A name too young to have the signal yet simply has no signal. Writing it as a blank
+    # would put a missing value on the board; under the flat when silent rule, leaving the
+    # row out says the same thing honestly.
+    long = long[np.isfinite(long["value"])]
     long["value"] = long["value"].astype("float32")
     d = OUT / name
     d.mkdir(parents=True, exist_ok=True)
     long.to_parquet(d / "signal.parquet", index=False, compression="zstd")
     meta = {"name": name, "kind": "predictions", "rule": rule, "quantile": quantile, "training_cutoff": "none (a formula)",
             "registered": REG, "universe": "point in time S&P 500 membership", "rebalance": "monthly, first trading day",
-            "description": description}
+            "description": description,
+            # a formula has no weights to freeze, so the provenance is the script that built it
+            "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            "source_file": Path(__file__).name}
     (d / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
     print(f"{name:34s} {rule:10s} q={quantile:.2f} {len(long):>8,} rows {long['Date'].min().date()} -> {long['Date'].max().date()}")
 
