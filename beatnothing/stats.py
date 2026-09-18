@@ -242,9 +242,17 @@ def joint_sharpe_tests(strategies: dict, bars: dict, n_boot: int = 1000, block_s
 
     diff = np.zeros(len(names))
     se = np.zeros(len(names))
+    live = np.zeros(len(names), dtype=bool)
     for j, n in enumerate(names):
+        # A contestant that is its own bar has nothing to test. Decide that from the series
+        # rather than from the standard error: the quadratic form behind the error can come
+        # back as 1e-17 instead of zero on a different linear algebra library, and dividing
+        # a near zero difference by a near zero error would feed noise into the stepdown.
+        if np.allclose(strategies[n], bars[n], rtol=0, atol=1e-15):
+            continue
         diff[j], se[j] = sharpe_diff_and_se(strategies[n], bars[n], prewhite=prewhite)
-    live = se > 0
+        live[j] = se[j] > 0
+    se = np.where(live, se, 0.0)
     t = np.where(live, diff / np.where(live, se, 1.0), 0.0)
 
     rng = np.random.default_rng(seed)
