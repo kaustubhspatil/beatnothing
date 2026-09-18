@@ -7,5 +7,6 @@
   "description": "Three block 1D CNN over 60 day windows. Frozen 2026 08 20.",
   "universe": "48 large cap US stocks (capstone universe)",
   "model_sha256": "e4bced9050d25255d6d8c843dfaddaef5b3426af7d55286aa841bfe06c37507f",
-  "model_file": "cnn1d_60d.pt"
+  "model_file": "cnn1d_60d.pt",
+  "signal_sha256": "a3e8e261520f2fea39fc4227bfb080cdb25d08c1512949069dfa682a15ad2bc9"
 }

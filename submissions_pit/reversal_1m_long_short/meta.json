@@ -9,5 +9,6 @@
   "rebalance": "monthly, first trading day",
   "description": "One month short term reversal: minus the trailing 21 day return. Monthly rebalanced. Long the top decile, short the bottom decile, dollar neutral, 50 bps a year borrow.",
   "source_sha256": "9cd1999448768826c020d8da7277a1b137a2c72d16ebc7e09049c27599afc1a2",
-  "source_file": "factor_contestants.py"
+  "source_file": "factor_contestants.py",
+  "signal_sha256": "6e8378182e4977549086db9355aea5b5c0ffdcc00d0fba1bbf50e2a9a8412b55"
 }

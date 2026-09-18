@@ -6,5 +6,6 @@
   "registered": "2026-09-18",
   "universe": "point in time S&P 500 membership; model trained on 48 survivor names",
   "description": "OLS on the 17 trailing features, frozen 2026 08 20, scored on every member.",
-  "model_sha256": "8418fb209daa3810e04e6e97a08c85d326682ef0ee73438a39f6c8900c3eaa46"
+  "model_sha256": "8418fb209daa3810e04e6e97a08c85d326682ef0ee73438a39f6c8900c3eaa46",
+  "signal_sha256": "0bd970f70a382d22bb5a8ee84eb1c34da6f311a5ee95e86345a9788eedb85f71"
 }

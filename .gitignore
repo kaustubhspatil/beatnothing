@@ -27,3 +27,6 @@ data/pit/feature_panel_pit.parquet
 kronos/
 data/pit/prices_pit.parquet
 contestants/kronos_pit_preds.parquet
+
+# strategy and positioning notes, never published
+docs/_private/

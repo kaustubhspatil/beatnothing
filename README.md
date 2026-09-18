@@ -72,6 +72,51 @@ bar. The leaderboard says so instead of ranking noise.
 * **A foundation model obeys the same arithmetic as a linear regression.** Kronos small, pretrained on 12 billion bars across 45 exchanges and used zero shot, has a gross Sharpe of 0.52 and a net Sharpe of minus 0.79, with a 53% drawdown, because it flips positions 241 times a year. A hundred times the parameters of the feedforward network; the same cost inversion as the incumbent.
 * **A cost aware objective repairs turnover, not alpha.** A network trained end to end on net Sharpe with a 10 bps turnover term trades three times a year instead of twelve and lands within 0.05 of the bar across three seeds, holding half the book in cash. Remove the cost term and the identical architecture loses 0.7 of Sharpe to fees. Given the true objective, the optimiser finds the bar.
 
+## How we decide something is real
+
+A leaderboard is a multiple test, and a Sharpe ratio is a badly behaved statistic. Three
+things stand between a number in the table above and a claim worth acting on.
+
+**The interval.** Net Edge carries a studentized circular block bootstrap interval
+(Ledoit and Wolf, 2008): every resample recomputes not only the difference but a
+heteroskedasticity and autocorrelation robust standard error for it, using the delta
+method over the four moments that define two Sharpe ratios. The block length is chosen by
+the Politis and White rule applied to the statistic's influence function, not to the
+return series, because the difference of two return series has almost no autocorrelation
+in its level while its squares are strongly persistent.
+
+**The correction.** With fifteen contestants tested separately at five percent, a false
+winner appears more than half the time. The same joint bootstrap resamples every
+contestant on the same dates and feeds a Romano and Wolf stepdown, which controls the
+chance of even one false claim across the whole board while keeping far more power than
+Bonferroni. The column that decides a verdict is **p adj**, not p.
+
+**The search.** A submitter who tried forty variants and shows you the best one has told
+you nothing. `beatnothing.stats` ships the combinatorially symmetric cross validation
+probability of backtest overfitting and the deflated Sharpe ratio, so a contestant with
+many variants can be scored on what the search itself would have produced.
+
+<p align="center">
+  <img src="leaderboard/figures/stats_validation.png" width="900" alt="Measured size, power, familywise error and overfitting probability of the benchmark's own statistics">
+</p>
+
+None of that is asserted. `scripts/validate_stats.py` simulates markets with fat tails and
+clustered volatility, where the contestant is highly correlated with its bar because real
+contestants are, and measures what the machinery actually does. On 250 simulations of four
+years of daily data:
+
+<table>
+<tr><th>When there is no real edge, how often is one claimed?</th><th>When there is a real edge of a third of a Sharpe, how often is it found?</th></tr>
+<tr><td>studentized test <strong>4.8%</strong> against a promise of 5%<br>percentile interval 2.4%</td><td>studentized test <strong>42.4%</strong><br>percentile interval 38.8%</td></tr>
+</table>
+
+The studentized test keeps its word. The older percentile interval fires at about half its
+nominal rate, and being conservative is not free: it misses real edges the studentized
+test finds. Size stays near five percent as the record lengthens from two years to sixteen,
+so what distortion remains is a finite sample effect and not a bug. Full numbers, including
+the familywise experiment and the overfitting probabilities, are in
+[`leaderboard/stats_validation.json`](leaderboard/stats_validation.json).
+
 ## Verify your verifier
 
 Most leakage is not in the model. It is in the evaluation. So the harness ships
@@ -202,9 +247,26 @@ them on the point in time universe is season three.
 
 A submission is a folder with a signal file and a metadata file; the engine does the
 rest. Read [`contestants/README.md`](contestants/README.md), then open a pull request
-with `submissions/<name>/`. Two reference scripts show the full path from raw prices to
-a submission: a pretrained foundation model used without training, and a network
+with `submissions_pit/<name>/`. Two reference scripts show the full path from raw prices
+to a submission: a pretrained foundation model used without training, and a network
 trained end to end on net Sharpe with three seeds.
+
+Every entry is checked by a machine before a human looks at it, on every pull request:
+structure, the engine's exposure rules, complete metadata, and then a leakage smell test.
+A cross sectional signal on daily equity returns has an information coefficient of roughly
+0.02 to 0.05; a submission an order of magnitude above that has not found something the
+field missed. The leakage canaries are used as tests of the checker itself, so the
+contestant that peeks at tomorrow's return cannot reach the board. Its first run refused
+four of my own factor submissions, which is exactly what it is for.
+
+Frozen means frozen, and it is verifiable rather than promised: each entry pins the
+sha256 of its own signal file, and because entries arrive by pull request, the public git
+history dates the registration. Neither the content nor the date can move afterwards
+without leaving a trace.
+
+```bash
+python scripts/validate_submissions.py --folder submissions_pit/my_model
+```
 
 ## Use it as a library, or from the shell
 
@@ -236,10 +298,9 @@ python scripts/make_figures.py
 ## Roadmap
 
 1. **Retrain on the point in time universe.** The universe is honest now; the contestants were still trained on survivors. Season three trains every reference model on the full membership from 2005, which needs the dead names of two more decades from the free tier, a few hundred symbols across a couple of months of quota.
-2. **Sharper statistics.** The studentized bootstrap of Ledoit and Wolf for Sharpe differences, and a family wise correction so that a crowded leaderboard cannot clear the bar by luck.
-3. **A long short engine** with a borrow cost, so that ranking signals can be judged on the book they were built for.
-4. **An LLM agent contestant**, in the spirit of StockBench, under the same costs and the same bar.
-5. **A year of forward track.** The workflow is armed; the calendar does the rest.
+2. **An LLM agent contestant**, in the spirit of StockBench, under the same costs and the same bar.
+3. **A technical report with a DOI**, so the method can be cited rather than linked. Anyone whose contestant is merged and survives a year of forward track is a named author on it.
+4. **A year of forward track.** The workflow is armed; the calendar does the rest.
 
 ## Honest limits
 

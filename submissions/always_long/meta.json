@@ -5,5 +5,6 @@
   "validation": "2019-01-01 to 2021-12-31",
   "registered": "2026-09-17",
   "description": "The do nothing bar itself: long every name every day. Anything that cannot beat this has no edge.",
-  "universe": "48 large cap US stocks (capstone universe)"
+  "universe": "48 large cap US stocks (capstone universe)",
+  "signal_sha256": "60013e1d45139c3a072e186733b61a0e2ff120f139fc3799df85451a64f39e57"
 }

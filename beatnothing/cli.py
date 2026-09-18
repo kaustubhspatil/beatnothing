@@ -3,7 +3,9 @@ Command line entry point.
 
     beatnothing score my_signal.parquet --actual data/actual_returns.parquet
     beatnothing score my_weights.parquet --actual ... --kind weights --start 2022-01-01
-    beatnothing leaderboard [--root PATH] [--actual PATH] [--n-boot 2000]
+    beatnothing leaderboard [--track survivor48|pit] [--root PATH] [--n-boot 2000]
+    beatnothing pbo v1.parquet v2.parquet v3.parquet --actual data/pit/actual_returns_pit.parquet
+    beatnothing validate submissions_pit/my_model
     beatnothing members 2008-09-15
 """
 from __future__ import annotations
@@ -11,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 
 
 def _score(args) -> int:
@@ -32,6 +35,49 @@ def _leaderboard(args) -> int:
     board = main(args.actual, n_boot=args.n_boot, root=args.root, track=args.track)
     print(f"scored {len(board['entries'])} submissions on the {args.track} track; leaderboard written")
     return 0
+
+
+def _pbo(args) -> int:
+    import numpy as np
+    import pandas as pd
+    from .stats import deflated_sharpe, pbo_cscv
+    from .engine import Backtest, TRADING_DAYS
+    from .leaderboard import load_actual, load_signal
+
+    actual = load_actual(args.actual)
+    curves, names = [], []
+    for path in args.signals:
+        wide = load_signal(path)
+        bt = Backtest(actual, predictions=wide, rule=args.rule, quantile=args.quantile)
+        curves.append(bt.daily_returns.reindex(actual.index).fillna(0.0).values)
+        p = Path(path)
+        names.append(p.parent.name if p.stem == "signal" else p.stem)   # every submission file is signal.parquet
+    R = np.column_stack(curves)
+    res = pbo_cscv(R, n_splits=args.splits)
+    srs = R.mean(0) / R.std(0) * np.sqrt(TRADING_DAYS)
+    best = int(np.argmax(srs))
+    deflated = deflated_sharpe(R[:, best], n_trials=R.shape[1], sr_variance=float(np.var(srs, ddof=1)))
+    print(json.dumps({"variants": names, "best": names[best], "best_sharpe": round(float(srs[best]), 3),
+                      "probability_of_backtest_overfitting": round(res["pbo"], 3),
+                      "median_out_of_sample_rank": res["median_rank"], "combinations": res["n_combinations"],
+                      "deflated_sharpe": round(deflated["deflated_sharpe"], 3),
+                      "sharpe_the_search_alone_would_give": round(deflated["expected_max_sharpe"], 3)}, indent=2))
+    if res["pbo"] > 0.4:
+        print("\nAt this overfitting probability the best variant is roughly what searching alone would "
+              "produce. Submit the one you chose before looking, or none.", file=sys.stderr)
+    return 0
+
+
+def _validate(args) -> int:
+    from .leaderboard import TRACKS, load_actual
+    from .validate import validate_submission
+    folder = Path(args.folder)
+    track = next((t for t, c in TRACKS.items() if c["submissions"] in folder.parts), "survivor48")
+    actual_path = Path(args.actual) if args.actual else Path(TRACKS[track]["actual"])
+    actual = load_actual(actual_path) if actual_path.exists() else None
+    rep = validate_submission(folder, actual)
+    print(rep.render())
+    return 0 if rep.ok else 1
 
 
 def _members(args) -> int:
@@ -64,6 +110,20 @@ def main(argv=None) -> int:
     lb.add_argument("--n-boot", type=int, default=2000)
     lb.add_argument("--track", choices=["survivor48", "pit"], default="survivor48")
     lb.set_defaults(func=_leaderboard)
+
+    p = sub.add_parser("pbo", help="how much of your best variant was the search itself "
+                                   "(meaningful from about eight variants upward)")
+    p.add_argument("signals", nargs="+", help="one signal parquet per variant you tried")
+    p.add_argument("--actual", required=True)
+    p.add_argument("--rule", choices=["long_flat", "long_top", "long_short"], default="long_flat")
+    p.add_argument("--quantile", type=float, default=0.1)
+    p.add_argument("--splits", type=int, default=10)
+    p.set_defaults(func=_pbo)
+
+    v = sub.add_parser("validate", help="check a submission folder against the rules")
+    v.add_argument("folder")
+    v.add_argument("--actual", default=None)
+    v.set_defaults(func=_validate)
 
     m = sub.add_parser("members", help="who was in the S&P 500 on a date")
     m.add_argument("date")

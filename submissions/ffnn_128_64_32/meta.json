@@ -7,5 +7,6 @@
   "description": "Feedforward network 128 64 32 trained on MSE with early stopping, the capstone's selected model. Frozen 2026 08 20.",
   "universe": "48 large cap US stocks (capstone universe)",
   "model_sha256": "05154bce2f33ccfdb396e8f7a47dd8eb70e8b8a37bb8faa041262968652040b6",
-  "model_file": "ffnn_best.pt"
+  "model_file": "ffnn_best.pt",
+  "signal_sha256": "c7ae73d6586d598ad9a0bd8ce104a4ea7d5a41f6ea588068d1007a80b6968001"
 }
