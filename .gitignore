@@ -32,3 +32,4 @@ contestants/kronos_pit_preds.parquet
 docs/_private/
 
 leaderboard/*.log
+leaderboard/overnight_chain.log
