@@ -39,6 +39,16 @@ LABELS = {
     "lightgbm_mse": "LightGBM (MSE)", "kronos_small_zero_shot": "Kronos small, zero shot",
     "costaware_net_lambda0bps_3seed_mean": "Cost aware net, no cost term",
     "costaware_net_lambda10bps_3seed_mean": "Cost aware net, 10 bps term",
+    "kronos_small_zero_shot_weekly": "Kronos small, zero shot, weekly",
+    "momentum_12_1_long_short": "Momentum 12 1, long short",
+    "momentum_12_1_long_top": "Momentum 12 1, top decile",
+    "low_vol_63d_long_short": "Low volatility, long short",
+    "low_vol_63d_long_top": "Low volatility, top decile",
+    "reversal_1m_long_short": "Reversal 1m, long short",
+    "reversal_1m_long_top": "Reversal 1m, top decile",
+    "linear_pit": "Linear (point in time)", "lightgbm_pit": "LightGBM (point in time)",
+    "lightgbm_rank_pit": "LightGBM rank", "ffnn_pit": "Feedforward (point in time)",
+    "ffnn_rank_pit": "Feedforward rank",
 }
 
 

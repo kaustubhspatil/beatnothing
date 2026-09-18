@@ -127,7 +127,9 @@ def score_window(actual: pd.DataFrame, wide: pd.DataFrame, kind: str, start, end
         # flat fifty basis points a year is the optimistic case. Price the pessimistic one.
         stats["net_sharpe_borrow_500bps"] = Backtest(a, cost_bps=cost_bps, borrow_bps_annual=500.0, **kw
                                                      ).stats()["net_sharpe"]
-    if investable is not None:
+    # A dollar neutral book competes with cash, so measuring it against a long index says
+    # nothing about it; the comparison is only meaningful for a contestant that is long.
+    if investable is not None and not dollar_neutral:
         inv = investable.reindex(r.index)
         ok = inv.notna().values
         if ok.sum() >= 20:
