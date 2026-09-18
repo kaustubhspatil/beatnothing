@@ -1,0 +1,48 @@
+name: Challenge a result
+description: A number on the board is wrong, or the method behind it is. This is the most useful issue you can open.
+title: "challenge: "
+labels: ["challenge"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every number here is produced by code in this repository from data in this
+        repository, which means every number can be checked and some of them can be
+        overturned. If you overturn one, the claim changes and you are credited in the
+        technical report.
+  - type: input
+    id: claim
+    attributes:
+      label: Which claim
+      description: Quote it, and say where it appears.
+      placeholder: 'README, "none of them clears the bar"; or technical_report.md section 4, the +0.44 survivorship premium'
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: What you ran and what you got
+      description: Commands and output. A diff against the committed leaderboard is ideal.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why you think the published number is wrong
+      description: The mechanism, not just the discrepancy. A different answer on a different machine is usually a library version, not a bug.
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of problem
+      options:
+        - a statistic is computed incorrectly
+        - the cost or borrow model is wrong
+        - there is hindsight or leakage left in a universe
+        - a contestant was scored unfairly
+        - the data does not match its source
+        - something else
+    validations:
+      required: true

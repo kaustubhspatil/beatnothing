@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/kaustubhspatil/beatnothing/actions/workflows/tests.yml/badge.svg)](https://github.com/kaustubhspatil/beatnothing/actions/workflows/tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/beatnothing)](https://pypi.org/project/beatnothing/)
-[![license](https://img.shields.io/github/license/kaustubhspatil/beatnothing)](LICENSE)
+[![license](https://img.shields.io/github/license/kaustubhspatil/beatnothing)](https://github.com/kaustubhspatil/beatnothing/blob/master/LICENSE)
 
 **Can your model beat doing nothing, after costs, without knowing the future?**
 
@@ -16,7 +16,7 @@ sectional ranking network, and a 2026 financial foundation model used with no tr
 all. **None of them clears the bar.**
 
 <p align="center">
-  <img src="leaderboard/figures/net_edge.png" width="900" alt="Net Edge with 95% intervals for every contestant, on the sealed 2022 to 2025 window and on 2026 to date">
+  <img src="https://raw.githubusercontent.com/kaustubhspatil/beatnothing/master/leaderboard/figures/net_edge.png" width="900" alt="Net Edge with 95% intervals for every contestant, on the sealed 2022 to 2025 window and on 2026 to date">
 </p>
 
 ```bash
@@ -37,7 +37,7 @@ pip install beatnothing
 ## Scoreboard, first season
 
 Sealed window 2022 to 2025, 48 large cap US stocks, net of 10 bps. Full detail with
-drawdowns, exposure and dollars in [`leaderboard/LEADERBOARD.md`](leaderboard/LEADERBOARD.md).
+drawdowns, exposure and dollars in [`leaderboard/LEADERBOARD.md`](https://github.com/kaustubhspatil/beatnothing/blob/master/leaderboard/LEADERBOARD.md).
 
 <table>
 <tr><th>Contestant</th><th>Net Edge</th><th>95% interval</th><th>Edge vs RSP</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Turnover a year</th></tr>
@@ -65,7 +65,7 @@ bar. The leaderboard says so instead of ranking noise.
 ## What the first season taught us
 
 <p align="center">
-  <img src="leaderboard/figures/cost_inversion.png" width="900" alt="Gross versus net Sharpe for every contestant on the sealed window">
+  <img src="https://raw.githubusercontent.com/kaustubhspatil/beatnothing/master/leaderboard/figures/cost_inversion.png" width="900" alt="Gross versus net Sharpe for every contestant on the sealed window">
 </p>
 
 * **Costs reorder the field.** The 1D CNN has the highest gross Sharpe of anything, 1.08, and a negative net Sharpe, because it turns the book over 265 times a year. Gross rank is not net rank. Papers that report gross numbers are reporting a different sport.
@@ -98,7 +98,7 @@ probability of backtest overfitting and the deflated Sharpe ratio, so a contesta
 many variants can be scored on what the search itself would have produced.
 
 <p align="center">
-  <img src="leaderboard/figures/stats_validation.png" width="900" alt="Measured size, power, familywise error and overfitting probability of the benchmark's own statistics">
+  <img src="https://raw.githubusercontent.com/kaustubhspatil/beatnothing/master/leaderboard/figures/stats_validation.png" width="900" alt="Measured size, power, familywise error and overfitting probability of the benchmark's own statistics">
 </p>
 
 None of that is asserted. `scripts/validate_stats.py` simulates markets with fat tails and
@@ -128,7 +128,7 @@ Getting that experiment right was harder than it looks, and the first attempt wa
 wrong: adding zero mean noise to the bar leaves the mean alone but raises the variance, so
 every simulated contestant was genuinely worse than its bar and the board could not have
 produced a false winner at all. It reported zero percent both ways, which looked like a
-result. Full numbers in [`leaderboard/stats_validation.json`](leaderboard/stats_validation.json).
+result. Full numbers in [`leaderboard/stats_validation.json`](https://github.com/kaustubhspatil/beatnothing/blob/master/leaderboard/stats_validation.json).
 
 ## Verify your verifier
 
@@ -146,12 +146,12 @@ The `truncation_test` in the same module proves a feature builder is trailing on
 deleting the future, recomputing, and demanding byte identical rows. Run on the point in
 time panel it compares 46,605 rows across 60 names either side of a June 2024 cutoff and
 finds a maximum difference of exactly zero on every one of the seventeen features
-([`data/pit/truncation_test.json`](data/pit/truncation_test.json)).
+([`data/pit/truncation_test.json`](https://github.com/kaustubhspatil/beatnothing/blob/master/data/pit/truncation_test.json)).
 
 ## The universe knew the future
 
 <p align="center">
-  <img src="leaderboard/figures/survivorship_gap.png" width="900" alt="Members on 31 December 2021, how many left the index, and how many no longer have prices">
+  <img src="https://raw.githubusercontent.com/kaustubhspatil/beatnothing/master/leaderboard/figures/survivorship_gap.png" width="900" alt="Members on 31 December 2021, how many left the index, and how many no longer have prices">
 </p>
 
 "The current S&amp;P 500 constituents" is a list of companies that survived. The
@@ -164,7 +164,7 @@ That is the residual survivorship gap in this first season, and it is stated rat
 than hidden.
 
 <p align="center">
-  <img src="leaderboard/figures/two_bars.png" width="900" alt="Growth of one dollar: the 48 survivor universe bar against RSP and SPY, 2022 to 2026">
+  <img src="https://raw.githubusercontent.com/kaustubhspatil/beatnothing/master/leaderboard/figures/two_bars.png" width="900" alt="Growth of one dollar: the 48 survivor universe bar against RSP and SPY, 2022 to 2026">
 </p>
 
 It is also priced. RSP, the equal weight S&amp;P 500 ETF, is the same idea as the
@@ -183,7 +183,7 @@ know the future.
 ## Season two: the universe that did not know the future
 
 <p align="center">
-  <img src="leaderboard/pit/figures/two_bars.png" width="900" alt="The point in time universe bar against RSP and SPY, 2022 to 2026">
+  <img src="https://raw.githubusercontent.com/kaustubhspatil/beatnothing/master/leaderboard/pit/figures/two_bars.png" width="900" alt="The point in time universe bar against RSP and SPY, 2022 to 2026">
 </p>
 
 Every S&amp;P 500 member on every day since 2022, 615 names in all, dead ones included,
@@ -337,8 +337,27 @@ Twenty five contestants now. None clears the bar on either window.
 
 ## Enter a contestant
 
+**From clone to a scored entry in five minutes, with no API key and no download**, because
+the returns panel is committed to this repository:
+
+```bash
+git clone https://github.com/kaustubhspatil/beatnothing && cd beatnothing
+pip install -e ".[dev]"
+python scripts/starter_submission.py --name my_first_try --author "your handle"
+beatnothing validate submissions_pit/my_first_try
+```
+
+That builds a genuine entry out of a five day reversal signal, and it loses: information
+coefficient +0.0142, net Sharpe −1.14, turnover 201× a year. Which is the fastest possible
+introduction to the problem. Now open `scripts/starter_submission.py`, replace
+`signal_from_returns` with your own idea, and open a pull request with the folder.
+
+You do not have to use that script, and you do not have to share your model. Any tool in
+any language can write the two files, and the signal plus its hash plus the date of the
+pull request are enough to freeze an entry.
+
 A submission is a folder with a signal file and a metadata file; the engine does the
-rest. Read [`contestants/README.md`](contestants/README.md), then open a pull request
+rest. Read [`contestants/README.md`](https://github.com/kaustubhspatil/beatnothing/blob/master/contestants/README.md), then open a pull request
 with `submissions_pit/<name>/`. Two reference scripts show the full path from raw prices
 to a submission: a pretrained foundation model used without training, and a network
 trained end to end on net Sharpe with three seeds.
@@ -433,6 +452,17 @@ that a stock gets on the announcement of its inclusion.
 * Net Edge compares Sharpe ratios. A contestant whose value is a lower drawdown, or a low correlation with everything else, is not measured by it.
 * The leakage check is a smell test, not a proof. A determined submitter could add noise until the information coefficient drops under the threshold. What it catches is accidents, which is most of them.
 * Eight months of forward track is not evidence. Check back in a year.
+
+## Overturn something
+
+The most useful thing you can send is not a contestant, it is a correction. Every number
+here is produced by code in this repository from data in this repository, so every number
+is attackable, and a reproduction that overturns a published claim changes the claim and
+earns a credit in the technical report. The
+["challenge a result"](https://github.com/kaustubhspatil/beatnothing/issues/new?template=challenge.yml)
+issue template asks for the three things that make a challenge actionable: which claim,
+what you ran, and the mechanism you think is wrong. The list above is where the author
+would attack first.
 
 ## Cite
 

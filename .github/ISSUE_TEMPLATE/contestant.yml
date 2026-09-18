@@ -1,0 +1,50 @@
+name: Announce a contestant
+description: You are about to submit an entry, or you want a second opinion before you do.
+title: "contestant: "
+labels: ["contestant"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Entries arrive as pull requests, not issues. Open this only if you want to discuss
+        one first. The five minute path is in
+        [CONTRIBUTING.md](https://github.com/kaustubhspatil/beatnothing/blob/master/CONTRIBUTING.md).
+  - type: input
+    id: what
+    attributes:
+      label: What the model is
+      placeholder: gradient boosted trees on order book imbalance, daily
+    validations:
+      required: true
+  - type: textarea
+    id: knows
+    attributes:
+      label: What does it know that always being long does not?
+      description: The bar earns the market's drift for free. Name the thing your model has that the drift does not.
+    validations:
+      required: true
+  - type: dropdown
+    id: track
+    attributes:
+      label: Track
+      options:
+        - point in time (recommended)
+        - survivor48
+    validations:
+      required: true
+  - type: dropdown
+    id: rule
+    attributes:
+      label: Position rule
+      options:
+        - long_flat
+        - long_top
+        - long_short
+    validations:
+      required: true
+  - type: input
+    id: turnover
+    attributes:
+      label: Roughly what annual turnover do you expect?
+      description: At 10 bps, 200x turnover a year is about 2 Sharpe of cost. Most contestants here died here.
+      placeholder: "20x"
