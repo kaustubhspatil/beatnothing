@@ -18,8 +18,9 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[data,figures]"
       - run: python scripts/download_data.py
-      - run: python -m beatnothing.leaderboard
+      - run: python -m beatnothing.leaderboard survivor48
       - run: python scripts/make_figures.py
+      - run: python -m beatnothing.leaderboard pit || echo "point in time track not rebuilt on the runner (needs the cached delisted histories)"
       - name: commit
         run: |
           git config user.name "beatnothing bot"
