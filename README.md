@@ -44,11 +44,11 @@ drawdowns, exposure and dollars in [`leaderboard/LEADERBOARD.md`](leaderboard/LE
 <tr><td>Feedforward network</td><td>−0.03</td><td>[−0.06, −0.01]</td><td>+0.41 [+0.17, +0.72]</td><td>+0.85</td><td>+0.88</td><td>4.3×</td></tr>
 <tr><td>Cost aware network, 10 bps term</td><td>−0.04</td><td>[−0.10, +0.01]</td><td>+0.40 [+0.15, +0.72]</td><td>+0.83</td><td>+0.87</td><td>2.9×</td></tr>
 <tr><td>LightGBM, MSE objective</td><td>−0.14</td><td>[−0.45, +0.09]</td><td>+0.30 [−0.13, +0.72]</td><td>+0.74</td><td>+0.79</td><td>7.2×</td></tr>
-<tr><td>LSTM, 60 day windows</td><td>−0.53</td><td>[−1.07, −0.10]</td><td>−0.08 [−0.61, +0.44]</td><td>+0.35</td><td>+0.62</td><td>43×</td></tr>
-<tr><td>Cost aware network, no cost term</td><td>−0.70</td><td>[−1.33, −0.09]</td><td>−0.26 [−0.89, +0.35]</td><td>+0.18</td><td>+0.53</td><td>11.5×</td></tr>
-<tr><td>1D CNN, 60 day windows</td><td>−0.93</td><td>[−1.62, −0.32]</td><td>−0.49 [−1.17, +0.16]</td><td>−0.05</td><td>+1.08</td><td>265×</td></tr>
-<tr><td>Linear regression, the incumbent</td><td>−1.17</td><td>[−1.85, −0.64]</td><td>−0.73 [−1.42, −0.10]</td><td>−0.30</td><td>+0.51</td><td>159×</td></tr>
-<tr><td>Kronos small, zero shot</td><td>−1.67</td><td>[−2.13, −1.28]</td><td>−1.23 [−1.71, −0.79]</td><td>−0.79</td><td>+0.52</td><td>241×</td></tr>
+<tr><td>LSTM, 60 day windows</td><td>−0.53</td><td>[−1.00, −0.12]</td><td>−0.08 [−0.61, +0.44]</td><td>+0.35</td><td>+0.62</td><td>43×</td></tr>
+<tr><td>Cost aware network, no cost term</td><td>−0.70</td><td>[−1.27, −0.09]</td><td>−0.26 [−0.89, +0.35]</td><td>+0.18</td><td>+0.53</td><td>11.5×</td></tr>
+<tr><td>1D CNN, 60 day windows</td><td>−0.93</td><td>[−1.55, −0.29]</td><td>−0.49 [−1.17, +0.16]</td><td>−0.05</td><td>+1.08</td><td>265×</td></tr>
+<tr><td>Linear regression, the incumbent</td><td>−1.17</td><td>[−1.82, −0.62]</td><td>−0.73 [−1.42, −0.10]</td><td>−0.30</td><td>+0.51</td><td>159×</td></tr>
+<tr><td>Kronos small, zero shot</td><td>−1.67</td><td>[−2.09, −1.26]</td><td>−1.23 [−1.71, −0.79]</td><td>−0.79</td><td>+0.52</td><td>241×</td></tr>
 </table>
 
 Read the two edge columns together. Three contestants clear RSP on the sealed window, and
@@ -106,16 +106,28 @@ contestants are, and measures what the machinery actually does. On 250 simulatio
 years of daily data:
 
 <table>
-<tr><th>When there is no real edge, how often is one claimed?</th><th>When there is a real edge of a third of a Sharpe, how often is it found?</th></tr>
-<tr><td>studentized test <strong>4.8%</strong> against a promise of 5%<br>percentile interval 2.4%</td><td>studentized test <strong>42.4%</strong><br>percentile interval 38.8%</td></tr>
+<tr><th>Experiment</th><th>Result</th></tr>
+<tr><td>No real edge exists. How often is one claimed?</td><td>studentized test <strong>4.8%</strong> against a promise of 5%; percentile interval 2.4%</td></tr>
+<tr><td>A real edge of a third of a Sharpe exists. How often is it found?</td><td>studentized test <strong>42.4%</strong>; percentile interval 38.8%</td></tr>
+<tr><td>Fifteen worthless contestants on one board. How often does one of them win?</td><td>tested separately <strong>61%</strong>; after the stepdown <strong>1%</strong></td></tr>
+<tr><td>Twelve variants of noise. What is the overfitting probability of the best?</td><td><strong>0.66</strong>, where one half is what pure noise deserves; with one genuinely good variant among the twelve, <strong>0.00</strong></td></tr>
 </table>
 
 The studentized test keeps its word. The older percentile interval fires at about half its
 nominal rate, and being conservative is not free: it misses real edges the studentized
 test finds. Size stays near five percent as the record lengthens from two years to sixteen,
-so what distortion remains is a finite sample effect and not a bug. Full numbers, including
-the familywise experiment and the overfitting probabilities, are in
-[`leaderboard/stats_validation.json`](leaderboard/stats_validation.json).
+so what distortion remains is a finite sample effect and not a bug.
+
+The third row is the one that matters most for a leaderboard, and it is why the verdict
+column reports an adjusted p value rather than an interval. Six boards in ten would have
+crowned somebody. On the real boards here the lowest adjusted p value is 0.97, so nothing
+comes close.
+
+Getting that experiment right was harder than it looks, and the first attempt was silently
+wrong: adding zero mean noise to the bar leaves the mean alone but raises the variance, so
+every simulated contestant was genuinely worse than its bar and the board could not have
+produced a false winner at all. It reported zero percent both ways, which looked like a
+result. Full numbers in [`leaderboard/stats_validation.json`](leaderboard/stats_validation.json).
 
 ## Verify your verifier
 
@@ -190,22 +202,31 @@ the ones that later died:
 
 <table>
 <tr><th>Contestant, point in time track</th><th>Net Edge</th><th>95% interval</th><th>Edge vs RSP</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Max drawdown</th><th>Turnover a year</th></tr>
+<tr><td>Momentum 12 1, long short vs cash</td><td>+0.21</td><td>[−0.79, +1.20]</td><td></td><td>+0.21</td><td>+0.27</td><td>−17%</td><td>7.0×</td></tr>
+<tr><td>Momentum 12 1, long top decile</td><td>+0.16</td><td>[−0.48, +0.80]</td><td></td><td>+0.63</td><td>+0.66</td><td>−24%</td><td>7.2×</td></tr>
+<tr><td>Low volatility, long top decile</td><td>+0.02</td><td>[−0.74, +0.76]</td><td></td><td>+0.49</td><td>+0.55</td><td>−14%</td><td>7.7×</td></tr>
+<tr><td>Cost aware network, 10 bps term</td><td>+0.00</td><td>[−0.06, +0.07]</td><td>+0.03 [−0.04, +0.11]</td><td>+0.47</td><td>+0.50</td><td>−12%</td><td>3.2×</td></tr>
 <tr><td>Always long, the universe bar</td><td>0.00</td><td></td><td>+0.03 [−0.01, +0.06]</td><td>+0.47</td><td>+0.47</td><td>−21%</td><td>0.4×</td></tr>
-<tr><td>Cost aware network, 10 bps term</td><td>+0.00</td><td>[−0.04, +0.06]</td><td>+0.03 [−0.04, +0.11]</td><td>+0.47</td><td>+0.50</td><td>−12%</td><td>3.2×</td></tr>
 <tr><td>Feedforward network</td><td>−0.02</td><td>[−0.03, −0.01]</td><td>+0.01 [−0.03, +0.05]</td><td>+0.45</td><td>+0.47</td><td>−21%</td><td>4.3×</td></tr>
-<tr><td>LightGBM, MSE objective</td><td>−0.11</td><td>[−0.39, +0.11]</td><td>−0.08 [−0.37, +0.13]</td><td>+0.36</td><td>+0.40</td><td>−22%</td><td>7.4×</td></tr>
-<tr><td>LSTM, 60 day windows</td><td>−0.25</td><td>[−0.51, −0.03]</td><td>−0.22 [−0.46, +0.00]</td><td>+0.21</td><td>+0.52</td><td>−22%</td><td>51×</td></tr>
-<tr><td>Cost aware network, no cost term</td><td>−0.33</td><td>[−0.87, +0.20]</td><td>−0.30 [−0.84, +0.24]</td><td>+0.14</td><td>+0.49</td><td>−6%</td><td>12×</td></tr>
-<tr><td>Linear regression, the incumbent</td><td>−0.80</td><td>[−1.15, −0.51]</td><td>−0.77 [−1.10, −0.48]</td><td>−0.34</td><td>+0.47</td><td>−38%</td><td>151×</td></tr>
-<tr><td>1D CNN, 60 day windows</td><td>−1.03</td><td>[−1.40, −0.69]</td><td>−1.00 [−1.42, −0.67]</td><td>−0.56</td><td>+0.53</td><td>−52%</td><td>235×</td></tr>
+<tr><td>LightGBM, MSE objective</td><td>−0.11</td><td>[−0.45, +0.12]</td><td>−0.08 [−0.37, +0.13]</td><td>+0.36</td><td>+0.40</td><td>−22%</td><td>7.4×</td></tr>
+<tr><td>LSTM, 60 day windows</td><td>−0.25</td><td>[−0.53, +0.00]</td><td>−0.22 [−0.46, +0.00]</td><td>+0.21</td><td>+0.52</td><td>−22%</td><td>51×</td></tr>
+<tr><td>Low volatility, long short vs cash</td><td>−0.27</td><td>[−1.25, +0.69]</td><td></td><td>−0.27</td><td>−0.22</td><td>−28%</td><td>6.7×</td></tr>
+<tr><td>Cost aware network, no cost term</td><td>−0.33</td><td>[−0.89, +0.24]</td><td>−0.30 [−0.84, +0.24]</td><td>+0.14</td><td>+0.49</td><td>−6%</td><td>12×</td></tr>
+<tr><td>Reversal 1m, long top decile</td><td>−0.38</td><td>[−0.81, +0.03]</td><td></td><td>+0.09</td><td>+0.17</td><td>−27%</td><td>21×</td></tr>
+<tr><td>Reversal 1m, long short vs cash</td><td>−0.47</td><td>[−1.38, +0.49]</td><td></td><td>−0.47</td><td>−0.25</td><td>−21%</td><td>21×</td></tr>
+<tr><td>Linear regression, the incumbent</td><td>−0.80</td><td>[−1.09, −0.52]</td><td>−0.77 [−1.10, −0.48]</td><td>−0.34</td><td>+0.47</td><td>−38%</td><td>151×</td></tr>
+<tr><td>1D CNN, 60 day windows</td><td>−1.03</td><td>[−1.38, −0.70]</td><td>−1.00 [−1.42, −0.67]</td><td>−0.56</td><td>+0.53</td><td>−52%</td><td>235×</td></tr>
 </table>
 
-Nothing clears either bar. The order is the same as on the survivor universe, the
-absolute numbers are roughly half, and the models neither collapse nor shine on ten
-times the names, including the failures: a strategy that hugs the bar hugs whatever bar
-it is given. Kronos is not on this track yet; 500 names times 1,200 days of
-autoregressive generation is a day of GPU time, and its verdict on the survivor track
-stands. On 2026 to date every interval includes zero on both tracks.
+Nothing clears either bar. Three contestants have a positive point estimate and every one
+of their intervals contains zero; after the stepdown across all fourteen, the lowest
+adjusted p value on the board is 0.97. The order is the same as on the survivor universe,
+the absolute numbers are roughly half, and the learned models neither collapse nor shine
+on ten times the names including the failures: a strategy that hugs the bar hugs whatever
+bar it is given. On 2026 to date every interval includes zero on both tracks.
+
+Kronos is not on this track yet; 500 names times 1,200 days of autoregressive generation
+is most of a day of GPU time, and its verdict on the survivor track stands.
 
 ### The classic factors, on the honest universe, after costs
 
@@ -217,15 +238,8 @@ Long only the top decile, judged against the universe bar. And long the top deci
 short the bottom decile, dollar neutral, paying 50 bps a year to borrow, judged against
 cash because a dollar neutral book competes with cash, not with an index.
 
-<table>
-<tr><th>Factor, point in time track, sealed 2022 to 2025</th><th>Rule</th><th>Bar</th><th>Net Edge</th><th>95% interval</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Max drawdown</th><th>Turnover a year</th></tr>
-<tr><td>Momentum 12 1</td><td>long short</td><td>cash</td><td>+0.21</td><td>[−0.58, +1.06]</td><td>+0.21</td><td>+0.27</td><td>−17%</td><td>7.0×</td></tr>
-<tr><td>Momentum 12 1</td><td>long top decile</td><td>universe</td><td>+0.16</td><td>[−0.39, +0.75]</td><td>+0.63</td><td>+0.66</td><td>−24%</td><td>7.2×</td></tr>
-<tr><td>Low volatility 63d</td><td>long top decile</td><td>universe</td><td>+0.02</td><td>[−0.71, +0.71]</td><td>+0.49</td><td>+0.55</td><td>−14%</td><td>7.7×</td></tr>
-<tr><td>Low volatility 63d</td><td>long short</td><td>cash</td><td>−0.27</td><td>[−1.21, +0.60]</td><td>−0.27</td><td>−0.22</td><td>−28%</td><td>6.7×</td></tr>
-<tr><td>Reversal 1m</td><td>long top decile</td><td>universe</td><td>−0.38</td><td>[−0.82, +0.01]</td><td>+0.09</td><td>+0.17</td><td>−27%</td><td>21×</td></tr>
-<tr><td>Reversal 1m</td><td>long short</td><td>cash</td><td>−0.47</td><td>[−1.37, +0.40]</td><td>−0.47</td><td>−0.25</td><td>−21%</td><td>21×</td></tr>
-</table>
+Their rows are in the table above, mixed in with everything else, which is the point: a
+factor and a neural network are contestants under the same rules.
 
 This is what the literature would predict for four recent years. Momentum is the only
 factor with a positive net edge on both rules, and even so its interval spans zero:
