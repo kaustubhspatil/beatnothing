@@ -109,6 +109,54 @@ def fig_net_edge(board):
     plt.close(fig)
 
 
+def fig_net_edge_deck(board):
+    """
+    A version of the signature chart built for a projector rather than a page.
+
+    The two panel chart packs 24 contestants and two windows into one image, which is right
+    for the repository and unreadable on a slide. This draws the sealed window only, at
+    slide proportions with type sized to survive being scaled down, so the contestant names
+    are legible from the back of a room.
+    """
+    wname = "sealed_2022_2025"
+    entries = [en for en in board["entries"]
+               if wname in en["windows"] and en["meta"]["name"] != "always_long"]
+    order = sorted((en["meta"]["name"] for en in entries),
+                   key=lambda n: next(e["windows"][wname]["net_edge"] for e in entries if e["meta"]["name"] == n))
+    by_name = {en["meta"]["name"]: en["windows"][wname] for en in entries}
+
+    fig, ax = plt.subplots(figsize=(13.5, 9.4))
+    edges = [by_name[n]["ci_low"] for n in order]
+    highs = [by_name[n]["ci_high"] for n in order]
+    lo_lim = float(np.quantile(edges, 0.10)) * 1.3
+    hi_lim = max(float(np.quantile(highs, 0.95)) * 1.25, 0.35)
+    for i, name in enumerate(order):
+        r = by_name[name]
+        c = GOOD if r["clears_bar"] else (BAD if r["ci_high"] < 0 else MUTED)
+        lo, hi = max(r["ci_low"], lo_lim), min(r["ci_high"], hi_lim)
+        ax.plot([lo, hi], [i, i], color=c, lw=4.0, solid_capstyle="round", alpha=0.95)
+        if r["ci_low"] < lo_lim:
+            ax.annotate("", xy=(lo_lim, i), xytext=(lo_lim + 0.055 * (hi_lim - lo_lim), i),
+                        arrowprops=dict(arrowstyle="-|>", color=c, lw=2.6))
+        if lo_lim <= r["net_edge"] <= hi_lim:
+            ax.plot(r["net_edge"], i, "o", color=c, ms=13, zorder=3)
+    ax.axvline(0, color=INK, lw=2.0)
+    ax.text(0, -0.55, "  doing nothing", color=INK, fontsize=17, fontweight="bold", va="center")
+    ax.set_xlim(lo_lim, hi_lim)
+    ax.set_ylim(-1.1, len(order) - 0.4)
+    ax.set_yticks(np.arange(len(order)))
+    ax.set_yticklabels([label(n) for n in order], fontsize=17)
+    ax.tick_params(axis="x", labelsize=16)
+    ax.set_xlabel("Net Edge:  net Sharpe minus the do nothing Sharpe, same days, 95% interval",
+                  fontsize=17, color=INK2, labelpad=14)
+    ax.set_title("Twenty five contestants. Green would mean an interval entirely "
+                 "above zero.\nNothing is green.",
+                 fontsize=20, pad=16)
+    fig.subplots_adjust(left=0.30, right=0.97, top=0.88, bottom=0.10)
+    fig.savefig(FIG / "net_edge_deck.png", dpi=150)
+    plt.close(fig)
+
+
 def fig_bars(actual, bars):
     """The two bars side by side: the survivor universe against the investable index."""
     if bars is None or "RSP" not in bars.columns:
@@ -231,6 +279,7 @@ if __name__ == "__main__":
     actual = load_actual(ROOT / cfg["actual"])
     bars = load_bars(ROOT / "data" / "benchmark_returns.parquet")
     fig_net_edge(board)
+    fig_net_edge_deck(board)
     fig_cost_inversion(board)
     fig_forward(board, actual)
     fig_bars(actual, bars)
