@@ -14,20 +14,29 @@ def test_investable_bar_adds_a_second_edge():
     a = _actual()
     always = pd.DataFrame(1.0, index=a.index, columns=a.columns)
     inv = a.mean(axis=1) - 0.0003                       # an index that lags the universe every day
-    res = score_window(a, always, "predictions", a.index[0], a.index[-1], bar_returns(a),
-                       n_boot=200, investable=inv)
-    assert res["net_edge"] == 0.0                       # the bar against itself
-    assert res["edge_vs_investable"] > 0                # the bar beats a lagging index
-    assert res["investable_days"] == len(a)
-    assert res["ci_low_vs_investable"] <= res["edge_vs_investable"] <= res["ci_high_vs_investable"]
+    stats, r, b = score_window(a, always, "predictions", a.index[0], a.index[-1], bar_returns(a),
+                               n_boot=200, investable=inv)
+    assert np.allclose(r.values, b.values)              # the bar contestant is its own bar
+    assert stats["edge_vs_investable"] > 0              # and it beats a lagging index
+    assert stats["investable_days"] == len(a)
+    assert stats["ci_low_vs_investable"] <= stats["edge_vs_investable"] <= stats["ci_high_vs_investable"]
 
 
 def test_investable_bar_is_optional_and_needs_overlap():
     a = _actual()
     always = pd.DataFrame(1.0, index=a.index, columns=a.columns)
-    res = score_window(a, always, "predictions", a.index[0], a.index[-1], bar_returns(a), n_boot=50)
-    assert "edge_vs_investable" not in res
+    stats, _, _ = score_window(a, always, "predictions", a.index[0], a.index[-1], bar_returns(a), n_boot=50)
+    assert "edge_vs_investable" not in stats
     disjoint = pd.Series(0.0, index=pd.bdate_range("2010-01-01", periods=100))
-    res = score_window(a, always, "predictions", a.index[0], a.index[-1], bar_returns(a), n_boot=50,
-                       investable=disjoint)
-    assert "edge_vs_investable" not in res             # fewer than 20 overlapping days: no claim made
+    stats, _, _ = score_window(a, always, "predictions", a.index[0], a.index[-1], bar_returns(a), n_boot=50,
+                               investable=disjoint)
+    assert "edge_vs_investable" not in stats            # fewer than 20 overlapping days: no claim made
+
+
+def test_score_window_pads_a_silent_contestant_to_cash():
+    a = _actual(n=200)
+    talkative = pd.DataFrame(1.0, index=a.index, columns=a.columns)
+    silent = talkative.iloc[:100]                       # stops submitting halfway through
+    stats, r, _ = score_window(a, silent, "predictions", a.index[0], a.index[-1], bar_returns(a), n_boot=20)
+    assert stats["days"] == len(a)                      # the record still covers every day
+    assert np.allclose(r.values[120:], 0.0)             # and the silent half is flat, not missing

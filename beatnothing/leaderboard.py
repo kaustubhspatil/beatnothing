@@ -34,7 +34,8 @@ import numpy as np
 import pandas as pd
 
 from .engine import Backtest, COST_BPS
-from .score import net_edge, cost_grid
+from .score import cost_grid, net_edge, sharpe
+from .stats import joint_sharpe_tests
 
 WINDOWS = {
     "sealed_2022_2025": ("2022-01-01", "2025-12-31"),
@@ -104,6 +105,13 @@ def score_window(actual: pd.DataFrame, wide: pd.DataFrame, kind: str, start, end
     w = wide.loc[(wide.index >= start) & (wide.index <= end)]
     if len(a) == 0 or len(w) == 0:
         return None
+    # Flat when silent: a day with no signal is a day in cash, not a day removed from the
+    # record. Without this a contestant could submit only on the days it liked the look of
+    # and have its Sharpe computed on that subset. It also puts every contestant on one
+    # calendar, which the joint test across the board requires.
+    w = w.reindex(index=a.index, columns=a.columns)
+    if kind != "predictions":
+        w = w.fillna(0.0)
     kw = {"predictions": w, "rule": rule, "quantile": quantile} if kind == "predictions" else {"weights": w, "allow_short": True}
     bt = Backtest(a, cost_bps=cost_bps, **kw)
     stats = bt.stats()
@@ -112,13 +120,8 @@ def score_window(actual: pd.DataFrame, wide: pd.DataFrame, kind: str, start, end
     dollar_neutral = rule == "long_short" or (kind == "weights" and abs(stats["avg_exposure"]) < 0.1 and stats["avg_short_exposure"] > 0.05)
     stats["bar_used"] = "cash" if dollar_neutral else "universe"
     b = pd.Series(0.0, index=r.index) if dollar_neutral else bar.reindex(r.index).fillna(0.0)
-    edge = net_edge(r.values, b.values, n_boot=n_boot)
     grid = cost_grid(a, grid=(0, 10, 20), **kw)
-    stats.update({"net_edge": edge["net_edge"], "ci_low": edge["ci_low"], "ci_high": edge["ci_high"],
-                  "p_positive": edge["p_positive"], "clears_bar": edge["clears_bar"],
-                  "bar_sharpe": edge["bar_sharpe"], "sharpe_se": edge["strategy_sharpe_se"],
-                  "psr_vs_zero": edge["psr_vs_zero"],
-                  "gross_sharpe": grid[0], "net_sharpe_20bps": grid[20]})
+    stats.update({"bar_sharpe": sharpe(b.values), "gross_sharpe": grid[0], "net_sharpe_20bps": grid[20]})
     if investable is not None:
         inv = investable.reindex(r.index)
         ok = inv.notna().values
@@ -127,11 +130,12 @@ def score_window(actual: pd.DataFrame, wide: pd.DataFrame, kind: str, start, end
             stats.update({"edge_vs_investable": e2["net_edge"], "ci_low_vs_investable": e2["ci_low"],
                           "ci_high_vs_investable": e2["ci_high"], "clears_investable": e2["clears_bar"],
                           "investable_sharpe": e2["bar_sharpe"], "investable_days": int(ok.sum())})
-    return stats
+    return stats, r, b
 
 
 def score_signal(signal_path: Path, actual_path: Path, kind: str = "predictions", start=None, end=None,
-                 n_boot: int = 2000, cost_bps: float = COST_BPS, bars_path: Path | None = None) -> dict:
+                 n_boot: int = 2000, cost_bps: float = COST_BPS, bars_path: Path | None = None,
+                 rule: str = "long_flat", quantile: float = 0.1) -> dict:
     """Score one signal file against one realised returns file. Used by the CLI."""
     actual = load_actual(actual_path)
     wide = load_signal(signal_path)
@@ -140,10 +144,12 @@ def score_signal(signal_path: Path, actual_path: Path, kind: str = "predictions"
     a = actual.loc[(actual.index >= start) & (actual.index <= end)]
     bars = load_bars(bars_path)
     inv = bars[INVESTABLE_BAR] if bars is not None and INVESTABLE_BAR in bars.columns else None
-    res = score_window(actual, wide, kind, start, end, bar_returns(a, cost_bps), n_boot=n_boot,
-                       cost_bps=cost_bps, investable=inv)
-    if res is None:
+    scored = score_window(actual, wide, kind, start, end, bar_returns(a, cost_bps), n_boot=n_boot,
+                          cost_bps=cost_bps, investable=inv, rule=rule, quantile=quantile)
+    if scored is None:
         raise ValueError("no overlapping days between the signal and the realised returns in that window")
+    res, r, b = scored
+    res.update(net_edge(r.values, b.values, n_boot=n_boot))
     res["window"] = [str(start.date()), str(end.date())]
     return res
 
@@ -164,15 +170,32 @@ def build(actual_path: Path, n_boot: int = 2000, root: Path | None = None, submi
              "bar": "always long, equal weight, same universe, same costs",
              "investable_bar": f"{INVESTABLE_BAR}, the equal weight S&P 500 ETF, buy and hold" if inv_all is not None else None,
              "entries": []}
+    series = {w: {} for w in WINDOWS}
+    bar_series = {w: {} for w in WINDOWS}
     for folder in subs:
         meta, wide = load_submission(folder)
         entry = {"meta": meta, "windows": {}}
         for name, (s, e) in WINDOWS.items():
-            res = score_window(actual, wide, meta["kind"], s, e, ubars[name], n_boot=n_boot, investable=inv_all,
-                               rule=meta.get("rule", "long_flat"), quantile=float(meta.get("quantile", 0.1)))
-            if res is not None:
+            scored = score_window(actual, wide, meta["kind"], s, e, ubars[name], n_boot=n_boot, investable=inv_all,
+                                  rule=meta.get("rule", "long_flat"), quantile=float(meta.get("quantile", 0.1)))
+            if scored is not None:
+                res, r, b = scored
                 entry["windows"][name] = res
+                series[name][meta["name"]] = r.values
+                bar_series[name][meta["name"]] = b.values
         board["entries"].append(entry)
+
+    # One joint bootstrap per window: it gives every contestant its studentized interval
+    # and p value, and the stepdown that controls the chance of even one false claim.
+    by_name = {en["meta"]["name"]: en for en in board["entries"]}
+    board["multiple_testing"] = {}
+    for wname in WINDOWS:
+        if not series[wname]:
+            continue
+        joint = joint_sharpe_tests(series[wname], bar_series[wname], n_boot=n_boot, seed=0)
+        board["multiple_testing"][wname] = {k: v for k, v in joint.items() if k != "contestants"}
+        for cname, stats in joint["contestants"].items():
+            by_name[cname]["windows"][wname].update(stats)
     return board
 
 
@@ -189,10 +212,18 @@ def to_markdown(board: dict) -> str:
     out = ["# Leaderboard", ""]
     if board.get("universe"):
         out += [f"Universe: {board['universe']}.", ""]
+    mt = board.get("multiple_testing", {})
+    block = next((v.get("block_size") for v in mt.values()), None)
+    k = next((v.get("n_contestants") for v in mt.values()), len(board["entries"]))
     out += [f"Universe bar: {board['bar']}. Costs: {board['cost_bps']:.0f} bps per unit of turnover. "
-           "Net Edge = net Sharpe minus the universe bar's net Sharpe on the same days, with a 95% paired "
-           "stationary bootstrap interval (2,000 resamples, mean block 10 days). A contestant "
-           "clears a bar only if the whole interval is above zero."]
+            "Net Edge = net Sharpe minus the bar's net Sharpe on the same days. The interval and the "
+            "p value come from a studentized circular block bootstrap (Ledoit and Wolf), which recomputes "
+            "a heteroskedasticity and autocorrelation robust standard error inside every resample"
+            + (f"; block length {block} days, chosen by the Politis and White rule" if block else "")
+            + ". **p adj** is the Romano and Wolf stepdown p value across all "
+            + f"{k} contestants on this board: it is the one that decides. Testing {k} contestants "
+            f"separately at five percent would produce a false winner {1 - 0.95 ** k:.0%} of the time, "
+            "so a contestant clears its bar only when the adjusted p value is at or below five percent."]
     if has_inv:
         out.append(f" Investable bar: {board['investable_bar']}, no cost charged because it is one position held "
                    "throughout; it holds every index member by construction, dead ones included. The gap between "
@@ -201,8 +232,9 @@ def to_markdown(board: dict) -> str:
     for wname, (s, e) in board["windows"].items():
         rows = [(en["meta"], en["windows"][wname]) for en in board["entries"] if wname in en["windows"]]
         rows.sort(key=lambda t: -t[1]["net_edge"])
-        head = ("<tr><th>Contestant</th><th>Rule</th><th>Net Edge</th><th>95% CI</th><th>Clears bar</th>"
-                + ("<th>Edge vs RSP</th><th>95% CI</th><th>Clears RSP</th>" if has_inv else "")
+        head = ("<tr><th>Contestant</th><th>Rule</th><th>Net Edge</th><th>95% CI</th><th>p</th><th>p adj</th>"
+                "<th>Clears bar</th>"
+                + ("<th>Edge vs RSP</th><th>95% CI</th>" if has_inv else "")
                 + "<th>Net Sharpe</th><th>Gross Sharpe</th><th>Sharpe at 20 bps</th><th>Max DD</th>"
                   "<th>Turnover/yr</th><th>Avg exposure</th><th>P&amp;L on $1M</th></tr>")
         out += [f"## {wname.replace('_', ' ')}  ({s} to {e})", "", "<table>", head]
@@ -211,15 +243,16 @@ def to_markdown(board: dict) -> str:
             if has_inv:
                 if "edge_vs_investable" in r:
                     inv_cells = (f"<td>{_fmt(r['edge_vs_investable'])}</td>"
-                                 f"<td>[{_fmt(r['ci_low_vs_investable'])}, {_fmt(r['ci_high_vs_investable'])}]</td>"
-                                 f"<td>{'yes' if r['clears_investable'] else 'no'}</td>")
+                                 f"<td>[{_fmt(r['ci_low_vs_investable'])}, {_fmt(r['ci_high_vs_investable'])}]</td>")
                 else:
-                    inv_cells = "<td></td><td></td><td></td>"
+                    inv_cells = "<td></td><td></td>"
             rule_cell = r.get("rule", "long_flat") + (" vs cash" if r.get("bar_used") == "cash" else "")
+            verdict = "yes" if r.get("clears_bar_fwe") else "no"
             out.append(
                 f"<tr><td>{meta['name']}</td><td>{rule_cell}</td><td>{_fmt(r['net_edge'])}</td>"
                 f"<td>[{_fmt(r['ci_low'])}, {_fmt(r['ci_high'])}]</td>"
-                f"<td>{'yes' if r['clears_bar'] else 'no'}</td>{inv_cells}<td>{_fmt(r['net_sharpe'])}</td>"
+                f"<td>{r.get('p_value', float('nan')):.3f}</td><td>{r.get('p_value_fwe', float('nan')):.3f}</td>"
+                f"<td>{verdict}</td>{inv_cells}<td>{_fmt(r['net_sharpe'])}</td>"
                 f"<td>{_fmt(r['gross_sharpe'])}</td><td>{_fmt(r['net_sharpe_20bps'])}</td>"
                 f"<td>{_fmt(r['max_drawdown'], 'pct')}</td><td>{_fmt(r['annual_turnover'], 't')}</td>"
                 f"<td>{_fmt(r['avg_exposure'], 'pct1')}</td><td>{_fmt(r['dollar_pnl'], 'usd')}</td></tr>")

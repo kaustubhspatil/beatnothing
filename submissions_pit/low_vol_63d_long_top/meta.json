@@ -7,5 +7,7 @@
   "registered": "2026-09-18",
   "universe": "point in time S&P 500 membership",
   "rebalance": "monthly, first trading day",
-  "description": "Low volatility: minus the trailing 63 day realised volatility. Monthly rebalanced. Long only the top decile, equal weight; judged against the universe bar."
+  "description": "Low volatility: minus the trailing 63 day realised volatility. Monthly rebalanced. Long only the top decile, equal weight; judged against the universe bar.",
+  "source_sha256": "9cd1999448768826c020d8da7277a1b137a2c72d16ebc7e09049c27599afc1a2",
+  "source_file": "factor_contestants.py"
 }
