@@ -71,6 +71,10 @@ def test_a_bar_against_itself_is_degenerate_but_safe():
     res = ledoit_wolf_test(x, x, n_boot=100, seed=8)
     assert res["net_edge"] == 0.0 and res["se"] == 0.0
     assert res["p_value"] == 1.0 and not res["clears_bar"] and not res["clears_bar_fwe"]
+    # the same must hold when the two series differ only by floating point dust
+    dusty = x + np.full_like(x, 1e-18)
+    res = ledoit_wolf_test(dusty, x, n_boot=100, seed=8)
+    assert res["se"] == 0.0 and res["p_value"] == 1.0 and not res["clears_bar_fwe"]
 
 
 def test_cash_bar_reduces_to_the_sharpe_ratio_itself():
