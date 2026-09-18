@@ -59,18 +59,17 @@ def main(spacing: float, save_prices: bool, tickers: str | None = None) -> None:
         for row in json.loads(seed.read_text(encoding="utf-8"))["detail"]:
             done.setdefault(row["ticker"], {"status": 200 if row["rows"] else 404, "rows": row["rows"],
                                             "first": row["first"], "last": row["last"]})
-    todo = [t for t in gone if t not in done or (save_prices and not (CACHE / f"{t}.csv").exists() and done[t]["rows"] >= 250)]
+    todo = [t for t in gone if t not in done or done[t].get("status") == 429 or (save_prices and not (CACHE / f"{t}.csv").exists() and done[t]["rows"] >= 250)]
     print(f"{len(gone)} missing leavers, {len(done)} already probed, {len(todo)} to fetch, {spacing:.0f}s apart", flush=True)
     if save_prices:
         CACHE.mkdir(parents=True, exist_ok=True)
     for i, t in enumerate(todo, 1):
-        for attempt in range(4):
+        while True:                      # a rate limit is never a failure, only a wait
             code, rows = fetch(ALIASES.get(t, t), key)
-            if code == 429:
-                print(f"{t}: rate limited, sleeping 16 minutes", flush=True)
-                time.sleep(16 * 60)
-                continue
-            break
+            if code != 429:
+                break
+            print(f"{t}: rate limited, sleeping 16 minutes", flush=True)
+            time.sleep(16 * 60)
         n = len(rows) if rows else 0
         first = rows[0]["date"][:10] if n else ""
         last = rows[-1]["date"][:10] if n else ""
