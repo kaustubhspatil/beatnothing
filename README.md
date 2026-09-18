@@ -1,7 +1,8 @@
 # beatnothing
 
 [![tests](https://github.com/kaustubhspatil/beatnothing/actions/workflows/tests.yml/badge.svg)](https://github.com/kaustubhspatil/beatnothing/actions/workflows/tests.yml)
-[![PyPI](https://img.shields.io/pypi/v/beatnothing)](https://pypi.org/project/beatnothing/)
+[![PyPI](https://img.shields.io/pypi/v/beatnothing.svg?color=2a78d6)](https://pypi.org/project/beatnothing/)
+[![python](https://img.shields.io/pypi/pyversions/beatnothing.svg)](https://pypi.org/project/beatnothing/)
 [![license](https://img.shields.io/github/license/kaustubhspatil/beatnothing)](https://github.com/kaustubhspatil/beatnothing/blob/master/LICENSE)
 
 **Can your model beat doing nothing, after costs, without knowing the future?**
