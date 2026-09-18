@@ -7,5 +7,7 @@
   "universe": "point in time S&P 500 membership; model trained on 48 survivor names",
   "description": "LightGBM, MSE objective, early stopped after three trees, scored on every member.",
   "model_sha256": "03c10ce18af1d49b4c1aabc027dc7bdc5d7b4aec583b82e14eeba2878345ad2f",
-  "signal_sha256": "69d866f8dcf5349a90685c99f5c73265a35e86fbafe84c20bebf0fe71a06b6e7"
+  "signal_sha256": "69d866f8dcf5349a90685c99f5c73265a35e86fbafe84c20bebf0fe71a06b6e7",
+  "information_coefficient": 0.0,
+  "rankable_share": 0.135
 }

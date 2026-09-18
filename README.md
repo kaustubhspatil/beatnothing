@@ -10,9 +10,10 @@ Every quant paper has a chart that goes up and to the right. This benchmark asks
 chart one question. It hands the same prices to the dumbest strategy imaginable, hold
 everything at equal weight and never think again, charges both of them the same fee on
 every trade, refuses to let either one see tomorrow, and measures the gap with an error
-bar. That gap is the **Net Edge**. Nine contestants have tried so far, from an ordinary
-linear regression to a 2026 financial foundation model with a hundred times the
-parameters. **None of them clears the bar.**
+bar. That gap is the **Net Edge**. Twenty five contestants have tried so far: four neural
+architectures, gradient boosted trees, the classic cross sectional factors, a cross
+sectional ranking network, and a 2026 financial foundation model used with no training at
+all. **None of them clears the bar.**
 
 <p align="center">
   <img src="leaderboard/figures/net_edge.png" width="900" alt="Net Edge with 95% intervals for every contestant, on the sealed 2022 to 2025 window and on 2026 to date">
@@ -297,6 +298,43 @@ the full panel from your own free token in an afternoon. And the contestants her
 trained on survivors, which is the last hindsight left in the benchmark; retraining
 them on the point in time universe is season three.
 
+## Season three: trained on the honest universe, and the one contestant with real information
+
+The last hindsight left was in the training, not the evaluation: every learned contestant
+so far was fitted on forty eight survivors and then asked about five hundred. Season three
+removes it. The universe now reaches back to 2013, 797 names, 97.4% of the member days the
+index defines, fitted to the end of 2018, chosen on 2019 to 2021, and scored on the same
+sealed window as everyone else. It stops at 2013 rather than 2005 on purpose: the free
+tier cannot supply Lehman Brothers, Bear Stearns, Washington Mutual, Countrywide, Fannie
+Mae or Freddie Mac, so reaching back to 2008 would quietly put survivorship bias into the
+one window where it would matter most.
+
+Alongside the usual architectures it adds the contestant the earlier results kept pointing
+at. A model trained to predict tomorrow's return under squared error is trained to predict
+the drift, and the drift is the bar; so instead, rank the names against each other within
+each day, which cancels the market move by construction, and trade the ranking long and
+short. Such a model cannot inherit the bar's return, so any edge would be its own.
+
+It has the most information of anything on the board, and it still loses:
+
+<table>
+<tr><th>Ranking network, rebalanced</th><th>Information coefficient</th><th>Gross Sharpe</th><th>Net Sharpe</th><th>Turnover</th><th>Paid to trade</th></tr>
+<tr><td>daily</td><td>+0.0154</td><td>+0.72</td><td>−1.50</td><td>222×</td><td>2.22 of Sharpe</td></tr>
+<tr><td>weekly</td><td>+0.0007</td><td>+0.32</td><td>−0.37</td><td>67×</td><td>0.69</td></tr>
+<tr><td>monthly</td><td>−0.0039</td><td>−0.10</td><td>−0.30</td><td>20×</td><td>0.20</td></tr>
+</table>
+
+Read the first column down. The information is real at a one day horizon, the highest
+coefficient of any contestant here, and it is gone within a week. Read the last column up.
+Harvesting it daily costs 2.22 of Sharpe ratio, which is three times the gross it produces.
+**The only contestant with genuine cross sectional information has information that decays
+faster than it can be traded profitably.** Slow down to keep the costs and the signal is no
+longer there; trade fast enough to catch it and the costs take three times what it is worth.
+That is a more interesting way to fail than any of the sixteen contestants that simply
+tracked the bar, and it is the kind of statement this benchmark exists to make.
+
+Twenty five contestants now. None clears the bar on either window.
+
 ## Enter a contestant
 
 A submission is a folder with a signal file and a metadata file; the engine does the
@@ -362,7 +400,7 @@ python scripts/make_figures.py pit
 
 ## Roadmap
 
-1. **Retrain on the point in time universe, back to 2013.** The universe is honest now; the contestants were still trained on survivors. The free tier supplies 291 of the 362 index members that left before 2021, which is enough for 98% coverage from 2013 but only 85% in 2005, and the names it cannot supply are concentrated in exactly the wrong place: Lehman Brothers, Bear Stearns, Washington Mutual, Countrywide, Fannie Mae and Freddie Mac are all missing. Building back to 2005 on free data would quietly reintroduce survivorship bias into the 2008 crisis, which is the one window where it would matter most, so season three trains from 2013 and says plainly that the crisis is out of reach without a paid archive.
+1. **Reach 2008.** The universe stops at 2013 because the free tier cannot supply the companies that died in the financial crisis. A paid archive would extend it, and a crisis is the one regime this benchmark has never tested anything in.
 2. **An LLM agent contestant**, in the spirit of StockBench, under the same costs and the same bar.
 3. **A technical report with a DOI**, so the method can be cited rather than linked. Anyone whose contestant is merged and survives a year of forward track is a named author on it.
 4. **A year of forward track.** The workflow is armed; the calendar does the rest.

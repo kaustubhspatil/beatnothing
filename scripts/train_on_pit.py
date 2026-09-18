@@ -51,21 +51,33 @@ def cross_sectional_rank(df: pd.DataFrame, col: str = "target") -> pd.Series:
     return (r - 0.5).astype("float32")
 
 
-def information_coefficient(frame: pd.DataFrame, actual: pd.DataFrame, max_days: int = 400) -> float:
-    """Mean daily cross sectional rank correlation with the next day return. The number to
-    look at before any Sharpe ratio: a real signal is 0.02 to 0.05, and a Sharpe attached
-    to an information coefficient of zero is luck with a holding period."""
+def information_coefficient(frame: pd.DataFrame, actual: pd.DataFrame, max_days: int = 400,
+                            min_share: float = 0.5) -> tuple[float, float]:
+    """
+    Mean daily cross sectional rank correlation with the next day return, and the share of
+    days that could contribute. A real signal is 0.02 to 0.05, and a Sharpe ratio attached
+    to an information coefficient of zero is luck with a holding period.
+
+    The share matters as much as the number. A signal that is the same for every name on a
+    day ranks nothing that day, and averaging only over the days where it happened to vary
+    reports the information of an unrepresentative sliver as if it were the whole. An early
+    stopped tree model does exactly this: it predicts one constant, varies on a handful of
+    days, and would otherwise be credited with a respectable coefficient measured on five
+    percent of the record. Below `min_share` the answer is zero, not the average.
+    """
     wide = frame.pivot(index="Date", columns="Ticker", values="value")
     s, a = wide.align(actual, join="inner")
+    days = list(s.index)[:max_days]
     ics = []
-    for day in list(s.index)[:max_days]:
+    for day in days:
         both = s.loc[day].notna() & a.loc[day].notna()
         row = s.loc[day][both]
         if both.sum() >= 20 and row.nunique() > 1:
             ics.append(row.rank().corr(a.loc[day][both].rank()))
-    # a signal that is the same for every name on a day has no cross sectional information,
-    # which is zero rather than undefined; it is also exactly what a drift predictor produces
-    return float(np.nanmean(ics)) if ics else 0.0
+    share = len(ics) / max(len(days), 1)
+    if share < min_share:
+        return 0.0, share
+    return float(np.nanmean(ics)), share
 
 
 def hold_between(frame: pd.DataFrame, hold: int) -> pd.DataFrame:
@@ -142,8 +154,8 @@ def main(panel_path: str, train_end: str, val_end: str, which: list[str], seeds:
                   callbacks=[lgb.early_stopping(100, verbose=False)])
             joblib.dump(g, MODELS / f"{tag}.pkl")
             signal = base.assign(value=g.predict(test[FC]))
-            ic = information_coefficient(signal, actual)
-            say(f"{tag}: {g.best_iteration_} trees in {time.time() - t0:.0f}s, information coefficient {ic:+.4f}")
+            ic, share = information_coefficient(signal, actual)
+            say(f"{tag}: {g.best_iteration_} trees in {time.time() - t0:.0f}s, information coefficient {ic:+.4f} (rankable on {share:.0%} of days)")
             desc = ("Gradient boosted trees on the next day return, squared error." if target == "target"
                     else "Gradient boosted trees on the within day cross sectional rank of the next day "
                          "return, so the market move is removed from the target by construction.")
@@ -153,7 +165,7 @@ def main(panel_path: str, train_end: str, val_end: str, which: list[str], seeds:
                 register(tag + suffix, hold_between(signal, hold), rule,
                          desc + ("" if hold == 1 else f" Rebalanced every {hold} trading days, held between."),
                          {**common, "objective": target, "trees": int(g.best_iteration_),
-                          "information_coefficient": round(ic, 5), "rebalance_days": hold,
+                          "information_coefficient": round(ic, 5), "rankable_share": round(share, 3), "rebalance_days": hold,
                           "model_sha256": hashlib.sha256((MODELS / f"{tag}.pkl").read_bytes()).hexdigest()})
 
     if "ffnn" in which:
@@ -194,8 +206,8 @@ def main(panel_path: str, train_end: str, val_end: str, which: list[str], seeds:
                                                  for i in range(0, len(Xte), 65536)]))
                 say(f"{tag} seed {seed}: stopped at epoch {epoch}, validation {best:.3e}")
             signal = base.assign(value=np.mean(preds, axis=0))
-            ic = information_coefficient(signal, actual)
-            say(f"{tag}: information coefficient {ic:+.4f}")
+            ic, share = information_coefficient(signal, actual)
+            say(f"{tag}: information coefficient {ic:+.4f} (rankable on {share:.0%} of days)")
             desc = ("Feedforward network 128 64 32 on the next day return, squared error, mean of "
                     f"{len(seeds)} seeds." if target == "target" else
                     "Feedforward network 128 64 32 on the within day cross sectional rank of the next day "
@@ -206,7 +218,7 @@ def main(panel_path: str, train_end: str, val_end: str, which: list[str], seeds:
                 register(tag + suffix, hold_between(signal, hold), rule,
                          desc + ("" if hold == 1 else f" Rebalanced every {hold} trading days, held between."),
                          {**common, "objective": target, "seeds": list(seeds), "information_coefficient": round(ic, 5),
-                          "rebalance_days": hold, "model_sha256": hashes})
+                          "rankable_share": round(share, 3), "rebalance_days": hold, "model_sha256": hashes})
 
     say("done. Rebuild the board with: beatnothing leaderboard --track pit")
 

@@ -7,5 +7,7 @@
   "universe": "point in time S&P 500 membership; model trained on 48 survivor names",
   "description": "Three block 1D CNN over 60 day windows, frozen 2026 08 20, scored on every member.",
   "model_sha256": "e4bced9050d25255d6d8c843dfaddaef5b3426af7d55286aa841bfe06c37507f",
-  "signal_sha256": "051e1952e0a7f044825c0b79bb3f882a66f8f834b569819dfdabcba97cd0849b"
+  "signal_sha256": "051e1952e0a7f044825c0b79bb3f882a66f8f834b569819dfdabcba97cd0849b",
+  "information_coefficient": -0.00552,
+  "rankable_share": 1.0
 }

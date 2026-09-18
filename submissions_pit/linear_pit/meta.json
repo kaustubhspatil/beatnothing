@@ -1,0 +1,14 @@
+{
+  "name": "linear_pit",
+  "kind": "predictions",
+  "rule": "long_flat",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership; trained on the same universe",
+  "description": "Ordinary least squares on the 17 trailing features, trained on the point in time universe.",
+  "signal_sha256": "18dbff36be14ab1cc669a6cd56dbf2c7baaaec436e03f31afac9675d2de8070b",
+  "training_cutoff": "2018-12-31",
+  "validation": "2018-12-31 to 2021-12-31",
+  "model_sha256": "3d69fd97c5f40322a8582a844a85b40a0cc79fc145cc6529f957a365a7e7bdcc",
+  "information_coefficient": -0.00033,
+  "rankable_share": 1.0
+}

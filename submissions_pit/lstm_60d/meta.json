@@ -7,5 +7,7 @@
   "universe": "point in time S&P 500 membership; model trained on 48 survivor names",
   "description": "Two layer LSTM over 60 day windows, frozen 2026 08 20, scored on every member.",
   "model_sha256": "602bd915fac50520c0e6f07646ed3c14d15f07f8a88a585cdec0728016040ecb",
-  "signal_sha256": "5a7478e9f49716095a773f23b64466a2ddc88985eba990ef7edde93ce53987e8"
+  "signal_sha256": "5a7478e9f49716095a773f23b64466a2ddc88985eba990ef7edde93ce53987e8",
+  "information_coefficient": 0.00917,
+  "rankable_share": 1.0
 }

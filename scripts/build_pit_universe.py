@@ -51,24 +51,26 @@ def tiingo_series(ticker: str) -> pd.DataFrame | None:
 def main(start: str, warmup: str, eval_start: str, suffix: str = "") -> None:
     START, WARMUP, EVAL_START = start, warmup, eval_start
     OUT.mkdir(parents=True, exist_ok=True)
-    tick = json.loads((ROOT / "data" / "pit_tickers.json").read_text())
-    members, yahoo_symbol = list(tick["members"]), dict(tick["yahoo_symbol"])
-    # extending the window back pulls in every name that was a member in the earlier years
-    extra = ROOT / "data" / "pit_tickers_2005.json"
-    if pd.Timestamp(START) < pd.Timestamp("2021-01-01") and extra.exists():
-        early = json.loads(extra.read_text())["early_members"]
-        for t in early:
-            if t not in yahoo_symbol:
-                members.append(t)
-                yahoo_symbol[t] = t.replace(".", "-")
-        members = sorted(set(members))
-        print(f"window starts {START}, so the universe is {len(members)} names rather than {len(tick['members'])}")
+    membership_all = Membership()
     aliases = json.loads((PIT_DIR / "ticker_aliases.json").read_text(encoding="utf-8"))
     aliases.pop("_about", None)
+    rejected = aliases.pop("_rejected", {})
+
+    # Every name that was a member at any point in the window, taken from the membership
+    # table itself so that any start date works. A name is needed from `warmup` because
+    # the features need history before the first scored day.
+    tick = json.loads((ROOT / "data" / "pit_tickers.json").read_text())
+    span = pd.date_range(START, pd.Timestamp.today(), freq="MS").tolist() + [pd.Timestamp(START)]
+    members = sorted(set().union(*(membership_all.on(min(d, membership_all.last_date)) for d in span)))
+    yahoo_symbol = {t: aliases.get(t, {}).get("alias", tick["yahoo_symbol"].get(t, t.replace(".", "-")))
+                    for t in members}
+    print(f"window from {START}: {len(members)} distinct index members, "
+          f"{sum(1 for t in members if t in aliases)} of them reached through a rename"
+          + (f" ({len(rejected)} lookalikes deliberately not used)" if rejected else ""))
     yahoo = pd.read_parquet(RAW / "pit" / "yahoo_prices.parquet")
     yahoo["Date"] = pd.to_datetime(yahoo["Date"])
     by_symbol = {s: g.drop(columns="Ticker").sort_values("Date").reset_index(drop=True) for s, g in yahoo.groupby("Ticker")}
-    membership = Membership()
+    membership = membership_all
     se = pd.read_csv(PIT_DIR / "sp500_ticker_start_end.csv.gz", parse_dates=["start_date", "end_date"])
 
     blocks, source, missing = [], {}, []

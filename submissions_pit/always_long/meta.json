@@ -6,5 +6,7 @@
   "registered": "2026-09-18",
   "universe": "point in time S&P 500 membership; model trained on 48 survivor names",
   "description": "The universe bar: long every member every day.",
-  "signal_sha256": "ebcd99740a32f76327f8a58385df661180771a6fef0a84e433df1b20e7b47707"
+  "signal_sha256": "ebcd99740a32f76327f8a58385df661180771a6fef0a84e433df1b20e7b47707",
+  "information_coefficient": 0.0,
+  "rankable_share": 0.0
 }

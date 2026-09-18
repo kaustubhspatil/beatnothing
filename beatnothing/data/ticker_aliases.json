@@ -99,5 +99,27 @@
     "alias": "PARA",
     "history_from": "2021-02-12",
     "note": "ViacomCBS renamed Paramount Global, 2022; Yahoo holds PARA from February 2021, which covers every day VIAC was a member after 2021"
+  },
+  "ADS": {
+    "alias": "BFH",
+    "history_from": "2001-06-15",
+    "note": "Alliance Data Systems renamed Bread Financial, 2022"
+  },
+  "CTL": {
+    "alias": "LUMN",
+    "history_from": "2000-01-03",
+    "note": "CenturyLink renamed Lumen Technologies, 2020"
+  },
+  "TMK": {
+    "alias": "GL",
+    "history_from": "2000-01-03",
+    "note": "Torchmark renamed Globe Life, 2019"
+  },
+  "_rejected": {
+    "NYX": "acquired by Intercontinental Exchange in 2013; ICE is a different company, not a rename",
+    "CCE": "Coca-Cola Enterprises was split in 2010 and merged into Coca-Cola European Partners in 2016",
+    "ESV": "Ensco became Valaris, whose equity was wiped out in 2021; the VAL series is a new company",
+    "CBS": "CBS merged into ViacomCBS then Paramount; the PARA series begins in 2021",
+    "_note": "these pass a naive continuity test and are still wrong. A successor is only usable when it is the same legal entity renamed."
   }
 }

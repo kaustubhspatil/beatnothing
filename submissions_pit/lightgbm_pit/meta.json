@@ -1,0 +1,17 @@
+{
+  "name": "lightgbm_pit",
+  "kind": "predictions",
+  "rule": "long_flat",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership; trained on the same universe",
+  "description": "Gradient boosted trees on the next day return, squared error.",
+  "signal_sha256": "0c3cca39d334e73b9e91e8f8fcb0b3c932781c9544684a41065d0508564ea11b",
+  "training_cutoff": "2018-12-31",
+  "validation": "2018-12-31 to 2021-12-31",
+  "objective": "target",
+  "trees": 2,
+  "information_coefficient": 0.0,
+  "rebalance_days": 1,
+  "model_sha256": "fae665e4c39c36c6bd59c487e8199e2a1c4bfc1b9baaf2449e75b9b3cee57624",
+  "rankable_share": 0.052
+}

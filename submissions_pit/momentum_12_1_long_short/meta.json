@@ -10,5 +10,7 @@
   "description": "Twelve month momentum skipping the most recent month (Jegadeesh and Titman). Monthly rebalanced. Long the top decile, short the bottom decile, dollar neutral, 50 bps a year borrow.",
   "source_sha256": "9cd1999448768826c020d8da7277a1b137a2c72d16ebc7e09049c27599afc1a2",
   "source_file": "factor_contestants.py",
-  "signal_sha256": "26188e29e577986054e3890b9527d9a233e0b3b8297041b68c13880eb6764be6"
+  "signal_sha256": "26188e29e577986054e3890b9527d9a233e0b3b8297041b68c13880eb6764be6",
+  "information_coefficient": 0.01237,
+  "rankable_share": 1.0
 }
