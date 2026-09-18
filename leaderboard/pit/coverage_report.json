@@ -1,0 +1,14 @@
+{
+  "window": [
+    "2021-12-31",
+    "2026-09-17"
+  ],
+  "members_at_start": 505,
+  "left_during_window": 94,
+  "left_and_unavailable": 1,
+  "left_and_unavailable_tickers": [
+    "EQR"
+  ],
+  "joined_during_window": 91,
+  "share_of_start_universe_unavailable": 0.002
+}

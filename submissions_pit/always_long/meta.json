@@ -1,0 +1,9 @@
+{
+  "name": "always_long",
+  "kind": "predictions",
+  "training_cutoff": "2018-12-31",
+  "validation": "2019-01-01 to 2021-12-31",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership; model trained on 48 survivor names",
+  "description": "The universe bar: long every member every day."
+}

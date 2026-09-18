@@ -10,6 +10,7 @@
     ]
   },
   "cost_bps": 10.0,
+  "universe": "48 large cap names chosen in August 2026 (a survivor universe)",
   "bar": "always long, equal weight, same universe, same costs",
   "investable_bar": "RSP, the equal weight S&P 500 ETF, buy and hold",
   "entries": [
@@ -709,5 +710,6 @@
         }
       }
     }
-  ]
+  ],
+  "track": "survivor48"
 }

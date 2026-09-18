@@ -99,7 +99,7 @@ def fig_bars(actual, bars):
         if series is None:
             continue
         eq = (1 + series).cumprod()
-        ax.plot(eq.index, eq.values, color=color, lw=2.0 if name.startswith("48") else 1.6, ls=ls)
+        ax.plot(eq.index, eq.values, color=color, lw=2.0 if name.startswith("the universe bar") else 1.6, ls=ls)
         ax.annotate(f"{name}  (Sharpe {series.mean() / series.std() * np.sqrt(252):+.2f})", xy=(eq.index[-1], eq.values[-1]),
                     xytext=(6, 0), textcoords="offset points", fontsize=8.8, va="center", color=color)
     ax.axvline(pd.Timestamp("2026-01-01"), color=GRID, lw=1.2)
