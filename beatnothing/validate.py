@@ -169,6 +169,18 @@ def validate_submission(folder: Path, actual: pd.DataFrame | None = None) -> Rep
         if (gross > 1.0 + 1e-6).any():
             rep.error(f"gross exposure reaches {gross.max():.3f}; the engine allows at most one")
 
+    if rule in ("long_top", "long_short"):
+        # a decile rule needs the signal to actually separate names; an early stopped tree
+        # model can emit two or three distinct values a day and rank nothing
+        distinct = wide.nunique(axis=1)
+        names = wide.notna().sum(axis=1)
+        share = float((distinct / names.replace(0, np.nan)).median())
+        rep.facts["distinct_values_per_day"] = f"{distinct.median():.0f} of {names.median():.0f} names"
+        if share < 2 * q:
+            rep.warn(f"the signal takes only {distinct.median():.0f} distinct values across "
+                     f"{names.median():.0f} names on a typical day, which is too coarse to pick a "
+                     f"{q:.0%} tail cleanly; ties are broken by ticker order")
+
     if actual is None or not rep.ok:
         return rep
 

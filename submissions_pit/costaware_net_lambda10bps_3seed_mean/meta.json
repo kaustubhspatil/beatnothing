@@ -12,5 +12,7 @@
     "seed44": "6cb8afb6aeac3bc3124afcd50b3ce72b4a36a45a0e4b8cc3c8bef28566c2561b"
   },
   "lambda_bps": 10,
-  "signal_sha256": "1dc9cba746722830402a279e7509c9f911ea6c1c860f39bb720812e3383eb095"
+  "signal_sha256": "1dc9cba746722830402a279e7509c9f911ea6c1c860f39bb720812e3383eb095",
+  "information_coefficient": 0.00365,
+  "rankable_share": 1.0
 }

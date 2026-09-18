@@ -7,5 +7,7 @@
   "universe": "point in time S&P 500 membership; model trained on 48 survivor names",
   "description": "Feedforward 128 64 32, MSE, frozen 2026 08 20, scored on every member.",
   "model_sha256": "05154bce2f33ccfdb396e8f7a47dd8eb70e8b8a37bb8faa041262968652040b6",
-  "signal_sha256": "58bc148b3983d44aefff5e6249256f9db7938999fe963e1350a36a41fdd881ce"
+  "signal_sha256": "58bc148b3983d44aefff5e6249256f9db7938999fe963e1350a36a41fdd881ce",
+  "information_coefficient": 0.00482,
+  "rankable_share": 1.0
 }

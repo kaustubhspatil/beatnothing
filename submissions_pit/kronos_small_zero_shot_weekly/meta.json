@@ -14,5 +14,7 @@
   "context_bars": 400,
   "samples": 3,
   "source_sha256": "1b3e1298094506b969e874cb4a9a3288ef81c97525079a86865ff476749a51c5",
-  "signal_sha256": "b4b1b974d48918712b9aa92ed4aab63b21816517c6848d526f46bc9f88161e41"
+  "signal_sha256": "b4b1b974d48918712b9aa92ed4aab63b21816517c6848d526f46bc9f88161e41",
+  "information_coefficient": -0.00232,
+  "rankable_share": 1.0
 }

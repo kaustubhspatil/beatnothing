@@ -1,0 +1,17 @@
+{
+  "name": "lightgbm_rank_pit",
+  "kind": "predictions",
+  "rule": "long_short",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership; trained on the same universe",
+  "description": "Gradient boosted trees on the within day cross sectional rank of the next day return, so the market move is removed from the target by construction.",
+  "signal_sha256": "70f4dbf77ac9bb7e023d065ae1459753332bedb1db11a59ab3f6d36932a2919f",
+  "training_cutoff": "2018-12-31",
+  "validation": "2018-12-31 to 2021-12-31",
+  "objective": "rank_target",
+  "trees": 7,
+  "information_coefficient": 0.00382,
+  "rebalance_days": 1,
+  "model_sha256": "af2c05e964e1a120727896532630890d1a03fdb82d73a023ef74b310af90ff69",
+  "rankable_share": 1.0
+}

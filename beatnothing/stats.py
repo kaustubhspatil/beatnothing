@@ -35,7 +35,9 @@ from scipy.stats import kurtosis, norm, rankdata, skew
 
 TRADING_DAYS = 252
 EULER = 0.5772156649015329
-_TINY = 1e-300
+# a floor on a variance, chosen so that its 1.5 power is still representable:
+# 1e-300 ** 1.5 underflows to zero and turns the gradient into a NaN
+_TINY = 1e-30
 
 
 # ── The delta method over Sharpe moments ─────────────────────────────────
@@ -199,6 +201,8 @@ def politis_white_block_size(x, default: int = 5) -> int:
     if D <= 0 or G == 0:
         return default
     b = (2.0 * G ** 2 / D) ** (1 / 3) * T ** (1 / 3)
+    if not np.isfinite(b):
+        return default
     return int(np.clip(round(b), 1, max(T // 3, 1)))
 
 
@@ -238,6 +242,7 @@ def joint_sharpe_tests(strategies: dict, bars: dict, n_boot: int = 1000, block_s
             raise ValueError(f"{n}: strategy and bar series must all share one calendar")
     if block_size is None:
         sizes = [politis_white_block_size(influence_series(strategies[n], bars[n])) for n in names]
+        sizes = [s for s in sizes if np.isfinite(s)] or [5]
         block_size = int(max(np.median(sizes), 1))
 
     diff = np.zeros(len(names))

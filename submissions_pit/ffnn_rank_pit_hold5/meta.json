@@ -1,0 +1,25 @@
+{
+  "name": "ffnn_rank_pit_hold5",
+  "kind": "predictions",
+  "rule": "long_short",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership; trained on the same universe",
+  "description": "Feedforward network 128 64 32 on the within day cross sectional rank of the next day return, mean of 3 seeds. Rebalanced every 5 trading days, held between.",
+  "signal_sha256": "4929cc10fb4aa86c8b264db5c28f321157061c9709b088691390fb3ee7a4cf1e",
+  "training_cutoff": "2018-12-31",
+  "validation": "2018-12-31 to 2021-12-31",
+  "objective": "rank_target",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "information_coefficient": 0.00068,
+  "rebalance_days": 5,
+  "model_sha256": {
+    "seed42": "1f0f1d37319caea7a84d87b1cbafc10b0e5c49b805fee8369420eaa3a61f0771",
+    "seed43": "023280d5980a0389d897b397740aef76c868f57b005c103cf243cec9a6ad9b9a",
+    "seed44": "68a72818d4a758488b6e23734b779b05666850760d833d08a85d6afa1250e157"
+  },
+  "rankable_share": 1.0
+}

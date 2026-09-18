@@ -1,0 +1,25 @@
+{
+  "name": "ffnn_pit",
+  "kind": "predictions",
+  "rule": "long_flat",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership; trained on the same universe",
+  "description": "Feedforward network 128 64 32 on the next day return, squared error, mean of 3 seeds.",
+  "signal_sha256": "70192ce7833f2924ca2e174206f54978728b5725d24aa73cb544999450d08175",
+  "training_cutoff": "2018-12-31",
+  "validation": "2018-12-31 to 2021-12-31",
+  "objective": "target",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "information_coefficient": 0.00095,
+  "rebalance_days": 1,
+  "model_sha256": {
+    "seed42": "a2d0c422cb9d6a169e35df0c62a14a8c94509e5f6d757e62240df1864f7b4e5c",
+    "seed43": "e50371186af4dc1d65d03573539076cded2e367b119dc8f05fa79de3343cf3cd",
+    "seed44": "d457096e14c4416b5c16f7445dc910d7d4f0036f81db27c2d247a03eeab35869"
+  },
+  "rankable_share": 1.0
+}
