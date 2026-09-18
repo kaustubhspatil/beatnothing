@@ -17,6 +17,7 @@ rows exist: a name is in the panel only on days it was in the index. Outputs:
 """
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -29,7 +30,9 @@ from beatnothing.universe import PIT_DIR
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
 OUT = ROOT / "data" / "pit"
-START, WARMUP, EVAL_START = "2021-01-01", "2021-06-01", "2022-01-01"
+# Prices are read from `start`; features need about a year of warm up before the first
+# usable row, and nothing before `eval_start` is scored.
+DEFAULTS = {"start": "2021-01-01", "warmup": "2021-06-01", "eval_start": "2022-01-01"}
 
 
 def tiingo_series(ticker: str) -> pd.DataFrame | None:
@@ -45,10 +48,21 @@ def tiingo_series(ticker: str) -> pd.DataFrame | None:
     return out.sort_values("Date").reset_index(drop=True)
 
 
-def main() -> None:
+def main(start: str, warmup: str, eval_start: str, suffix: str = "") -> None:
+    START, WARMUP, EVAL_START = start, warmup, eval_start
     OUT.mkdir(parents=True, exist_ok=True)
     tick = json.loads((ROOT / "data" / "pit_tickers.json").read_text())
-    members, yahoo_symbol = tick["members"], tick["yahoo_symbol"]
+    members, yahoo_symbol = list(tick["members"]), dict(tick["yahoo_symbol"])
+    # extending the window back pulls in every name that was a member in the earlier years
+    extra = ROOT / "data" / "pit_tickers_2005.json"
+    if pd.Timestamp(START) < pd.Timestamp("2021-01-01") and extra.exists():
+        early = json.loads(extra.read_text())["early_members"]
+        for t in early:
+            if t not in yahoo_symbol:
+                members.append(t)
+                yahoo_symbol[t] = t.replace(".", "-")
+        members = sorted(set(members))
+        print(f"window starts {START}, so the universe is {len(members)} names rather than {len(tick['members'])}")
     aliases = json.loads((PIT_DIR / "ticker_aliases.json").read_text(encoding="utf-8"))
     aliases.pop("_about", None)
     yahoo = pd.read_parquet(RAW / "pit" / "yahoo_prices.parquet")
@@ -100,9 +114,9 @@ def main() -> None:
     if len(thin):
         print("dropping thin dates:", [str(d.date()) for d in thin])
         panel = panel[~panel["Date"].isin(thin)].reset_index(drop=True)
-    panel.to_parquet(OUT / "feature_panel_pit.parquet", index=False)
+    panel.to_parquet(OUT / f"feature_panel_pit{suffix}.parquet", index=False)
     actual = panel[panel["Date"] >= EVAL_START][["Date", "Ticker", "target"]]
-    actual.to_parquet(OUT / "actual_returns_pit.parquet", index=False)
+    actual.to_parquet(OUT / f"actual_returns_pit{suffix}.parquet", index=False)
 
     # coverage: member days the panel supplies against member days the index defines
     eval_dates = [d for d in dates if d >= pd.Timestamp(EVAL_START)]
@@ -116,10 +130,17 @@ def main() -> None:
               "tickers_total": len(members), "from_tiingo": sorted(t for t, s in source.items() if s == "tiingo"),
               "from_yahoo_alias": sorted(t for t, s in source.items() if s.startswith("yahoo:") and s[6:] != t.replace(".", "-")),
               "missing": sorted(missing)}
-    (OUT / "coverage.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
+    (OUT / f"coverage{suffix}.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
     print(json.dumps({k: v for k, v in report.items() if k not in ("from_tiingo", "from_yahoo_alias")}, indent=1))
     print("from tiingo:", len(report["from_tiingo"]), "| via alias:", len(report["from_yahoo_alias"]), "| missing:", report["missing"])
 
 
 if __name__ == "__main__":
-    main()
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--start", default=DEFAULTS["start"], help="first price date to read")
+    ap.add_argument("--warmup", default=None, help="first feature date to keep; five months after start by default")
+    ap.add_argument("--eval-start", default=DEFAULTS["eval_start"], help="first date that is scored")
+    ap.add_argument("--suffix", default="", help="written into the output file names, for a second universe")
+    a = ap.parse_args()
+    warm = a.warmup or str((pd.Timestamp(a.start) + pd.DateOffset(months=5)).date())
+    main(a.start, warm, a.eval_start, a.suffix)
