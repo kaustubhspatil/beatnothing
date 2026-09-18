@@ -26,7 +26,7 @@ pip install beatnothing
 
 <table>
 <tr><th>Rule</th><th>What it means in practice</th></tr>
-<tr><td><strong>One engine</strong></td><td>Predictions become positions by one fixed rule: equal weight long every name with a positive value, cash otherwise. Weights are used as given, long only, no leverage. Nobody gets a custom backtester.</td></tr>
+<tr><td><strong>One engine</strong></td><td>Predictions become positions by one of three fixed rules a contestant declares: long every name with a positive value (the default), long the top decile, or long the top and short the bottom decile, dollar neutral, with a 50 bps a year borrow charge. Weights are used as given, gross exposure at most one, no leverage. Nobody gets a custom backtester.</td></tr>
 <tr><td><strong>One bar, and a second one that could not choose</strong></td><td>The universe bar: always long, equal weight, same universe, same days, same costs. The thing you would earn with zero skill on the names you picked. Beside it, the investable bar: RSP, the equal weight S&amp;P 500 ETF, which holds every index member by construction, dead ones included, and cannot have picked its universe with hindsight. The gap between the two bars is what picking the universe was worth.</td></tr>
 <tr><td><strong>Costs on every trade</strong></td><td>10 bps per unit of turnover, day one included. Gross and 20 bps numbers sit beside the net number so you can see who only wins for free.</td></tr>
 <tr><td><strong>One score</strong></td><td>Net Edge = your net Sharpe minus the bar's net Sharpe on the same days, with a 95% paired stationary block bootstrap interval. You clear the bar only when the whole interval is above zero.</td></tr>
@@ -161,6 +161,35 @@ times the names, including the failures: a strategy that hugs the bar hugs whate
 it is given. Kronos is not on this track yet; 500 names times 1,200 days of
 autoregressive generation is a day of GPU time, and its verdict on the survivor track
 stands. On 2026 to date every interval includes zero on both tracks.
+
+### The classic factors, on the honest universe, after costs
+
+A benchmark that only my own models have failed proves little. So the field now holds
+the strategies every quant knows, built from prices alone and traded the way the
+literature trades them, monthly rebalanced, decile portfolios: twelve month momentum
+skipping the last month, one month reversal, and low volatility. Each runs two ways.
+Long only the top decile, judged against the universe bar. And long the top decile,
+short the bottom decile, dollar neutral, paying 50 bps a year to borrow, judged against
+cash because a dollar neutral book competes with cash, not with an index.
+
+<table>
+<tr><th>Factor, point in time track, sealed 2022 to 2025</th><th>Rule</th><th>Bar</th><th>Net Edge</th><th>95% interval</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Max drawdown</th><th>Turnover a year</th></tr>
+<tr><td>Momentum 12 1</td><td>long short</td><td>cash</td><td>+0.21</td><td>[−0.58, +1.06]</td><td>+0.21</td><td>+0.27</td><td>−17%</td><td>7.0×</td></tr>
+<tr><td>Momentum 12 1</td><td>long top decile</td><td>universe</td><td>+0.16</td><td>[−0.39, +0.75]</td><td>+0.63</td><td>+0.66</td><td>−24%</td><td>7.2×</td></tr>
+<tr><td>Low volatility 63d</td><td>long top decile</td><td>universe</td><td>+0.02</td><td>[−0.71, +0.71]</td><td>+0.49</td><td>+0.55</td><td>−14%</td><td>7.7×</td></tr>
+<tr><td>Low volatility 63d</td><td>long short</td><td>cash</td><td>−0.27</td><td>[−1.21, +0.60]</td><td>−0.27</td><td>−0.22</td><td>−28%</td><td>6.7×</td></tr>
+<tr><td>Reversal 1m</td><td>long top decile</td><td>universe</td><td>−0.38</td><td>[−0.82, +0.01]</td><td>+0.09</td><td>+0.17</td><td>−27%</td><td>21×</td></tr>
+<tr><td>Reversal 1m</td><td>long short</td><td>cash</td><td>−0.47</td><td>[−1.37, +0.40]</td><td>−0.47</td><td>−0.25</td><td>−21%</td><td>21×</td></tr>
+</table>
+
+This is what the literature would predict for four recent years. Momentum is the only
+factor with a positive net edge on both rules, and even so its interval spans zero:
+four years of a fifty name decile book is not enough to separate a Sharpe of 0.2 from
+luck, which is exactly why the intervals are printed. Short term reversal, a strong
+anomaly in the 1990s, is dead after costs at 21 turns a year. Low volatility is flat.
+Nothing clears either bar, and the models above now sit in a field that includes the
+strategies real money trades. The calibration also cuts the other way: a harness that
+had shown momentum at a Sharpe of 2 would have been reporting a bug.
 
 Two notes on the data. The dead names' histories come from Tiingo's free tier, whose
 terms cover personal use, so this repository carries their realised returns for the

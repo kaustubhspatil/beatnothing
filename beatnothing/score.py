@@ -99,8 +99,8 @@ def net_edge(strategy_returns, bar_returns, **kw) -> dict:
     return out
 
 
-def cost_grid(actual, predictions=None, weights=None, grid=(0, 5, 10, 15, 20, 25)) -> dict:
+def cost_grid(actual, predictions=None, weights=None, grid=(0, 5, 10, 15, 20, 25), **engine_kwargs) -> dict:
     """Net Sharpe of one contestant across a grid of cost assumptions (bps)."""
     from .engine import Backtest
-    return {int(c): Backtest(actual, predictions=predictions, weights=weights, cost_bps=c).stats()["net_sharpe"]
+    return {int(c): Backtest(actual, predictions=predictions, weights=weights, cost_bps=c, **engine_kwargs).stats()["net_sharpe"]
             for c in grid}

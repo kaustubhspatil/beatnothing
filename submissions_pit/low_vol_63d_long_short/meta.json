@@ -1,0 +1,11 @@
+{
+  "name": "low_vol_63d_long_short",
+  "kind": "predictions",
+  "rule": "long_short",
+  "quantile": 0.1,
+  "training_cutoff": "none (a formula)",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership",
+  "rebalance": "monthly, first trading day",
+  "description": "Low volatility: minus the trailing 63 day realised volatility. Monthly rebalanced. Long the top decile, short the bottom decile, dollar neutral, 50 bps a year borrow."
+}
