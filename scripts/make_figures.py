@@ -47,8 +47,10 @@ LABELS = {
     "reversal_1m_long_short": "Reversal 1m, long short",
     "reversal_1m_long_top": "Reversal 1m, top decile",
     "linear_pit": "Linear (point in time)", "lightgbm_pit": "LightGBM (point in time)",
-    "lightgbm_rank_pit": "LightGBM rank", "ffnn_pit": "Feedforward (point in time)",
-    "ffnn_rank_pit": "Feedforward rank",
+    "lightgbm_rank_pit": "LightGBM rank, daily", "ffnn_pit": "Feedforward (point in time)",
+    "ffnn_rank_pit": "Feedforward rank, daily",
+    "lightgbm_rank_pit_hold5": "LightGBM rank, weekly", "lightgbm_rank_pit_hold21": "LightGBM rank, monthly",
+    "ffnn_rank_pit_hold5": "Feedforward rank, weekly", "ffnn_rank_pit_hold21": "Feedforward rank, monthly",
 }
 
 
@@ -65,20 +67,34 @@ def fig_net_edge(board):
                    key=lambda n: next(en["windows"][first]["net_edge"] for en in board["entries"] if en["meta"]["name"] == n))
     by_name = {en["meta"]["name"]: en["windows"] for en in board["entries"]}
     has_inv = board.get("investable_bar") is not None
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5.8), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(12, max(5.8, 0.28 * len(order) + 2.2)), sharey=True)
     for ax, (wname, (s, e)) in zip(axes, windows):
+        # One contestant can be far enough below zero to squash everyone else, so the axis
+        # covers the bulk and anything beyond it is drawn as an arrow at the edge.
+        edges = [by_name[n][wname]["ci_low"] for n in order if wname in by_name[n]]
+        highs = [by_name[n][wname]["ci_high"] for n in order if wname in by_name[n]]
+        lo_lim = float(np.quantile(edges, 0.10)) * 1.35
+        hi_lim = max(float(np.quantile(highs, 0.95)) * 1.2, 0.3)
         for i, name in enumerate(order):
             r = by_name[name].get(wname)
             if r is None:
                 continue
             c = GOOD if r["clears_bar"] else (BAD if r["ci_high"] < 0 else MUTED)
-            ax.plot([r["ci_low"], r["ci_high"]], [i, i], color=c, lw=2.2, solid_capstyle="round")
-            ax.plot(r["net_edge"], i, "o", color=c, ms=7, zorder=3)
+            lo, hi = max(r["ci_low"], lo_lim), min(r["ci_high"], hi_lim)
+            ax.plot([lo, hi], [i, i], color=c, lw=2.2, solid_capstyle="round")
+            if r["ci_low"] < lo_lim:                       # the interval runs off the page
+                ax.annotate("", xy=(lo_lim, i), xytext=(lo_lim + 0.06 * (hi_lim - lo_lim), i),
+                            arrowprops=dict(arrowstyle="-|>", color=c, lw=1.6))
+            if lo_lim <= r["net_edge"] <= hi_lim:
+                ax.plot(r["net_edge"], i, "o", color=c, ms=7, zorder=3)
             if has_inv and "edge_vs_investable" in r:      # hollow marker: the same contestant against RSP
                 y = i - 0.28
-                ax.plot([r["ci_low_vs_investable"], r["ci_high_vs_investable"]], [y, y], color=ORANGE, lw=1.2, alpha=0.9)
-                ax.plot(r["edge_vs_investable"], y, "o", mfc="white", mec=ORANGE, mew=1.4, ms=6, zorder=3)
+                ax.plot([max(r["ci_low_vs_investable"], lo_lim), min(r["ci_high_vs_investable"], hi_lim)],
+                        [y, y], color=ORANGE, lw=1.2, alpha=0.9)
+                if lo_lim <= r["edge_vs_investable"] <= hi_lim:
+                    ax.plot(r["edge_vs_investable"], y, "o", mfc="white", mec=ORANGE, mew=1.4, ms=6, zorder=3)
         ax.axvline(0, color=INK, lw=1.0)
+        ax.set_xlim(lo_lim, hi_lim)
         ax.set_title(f"{wname.replace('_', ' ')}: {s} to {e}", pad=8)
     axes[0].set_yticks(np.arange(len(order)))
     axes[0].set_yticklabels([label(n) for n in order])
