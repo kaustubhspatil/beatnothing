@@ -1,5 +1,7 @@
 # Leaderboard
 
+Universe: 48 large cap names chosen in August 2026 (a survivor universe).
+
 Universe bar: always long, equal weight, same universe, same costs. Costs: 10 bps per unit of turnover. Net Edge = net Sharpe minus the universe bar's net Sharpe on the same days, with a 95% paired stationary bootstrap interval (2,000 resamples, mean block 10 days). A contestant clears a bar only if the whole interval is above zero.
  Investable bar: RSP, the equal weight S&P 500 ETF, buy and hold, no cost charged because it is one position held throughout; it holds every index member by construction, dead ones included. The gap between the two bars is the survivorship and selection inflation of the contestant's universe.
 

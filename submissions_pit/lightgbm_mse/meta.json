@@ -1,0 +1,10 @@
+{
+  "name": "lightgbm_mse",
+  "kind": "predictions",
+  "training_cutoff": "2018-12-31",
+  "validation": "2019-01-01 to 2021-12-31",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership; model trained on 48 survivor names",
+  "description": "LightGBM, MSE objective, early stopped after three trees, scored on every member.",
+  "model_sha256": "03c10ce18af1d49b4c1aabc027dc7bdc5d7b4aec583b82e14eeba2878345ad2f"
+}

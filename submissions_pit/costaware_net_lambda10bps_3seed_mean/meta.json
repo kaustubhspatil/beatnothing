@@ -1,0 +1,15 @@
+{
+  "name": "costaware_net_lambda10bps_3seed_mean",
+  "kind": "weights",
+  "training_cutoff": "2018-12-31",
+  "validation": "2019-01-01 to 2021-12-31",
+  "registered": "2026-09-18",
+  "universe": "point in time S&P 500 membership; model trained on 48 survivor names",
+  "description": "Cost aware network, 10 bps turnover term, mean of seeds 42 43 44, weights = sigmoid / N over the members present that day.",
+  "model_sha256": {
+    "seed42": "c90a019557e512c0e91c36a70084d0fad6bc6d5f8ce91eddde65be32f46c8f2a",
+    "seed43": "4f288240a9b8ece2cbc404edf9a345793cc3c7ed82100b6d786efbdbf6673bdb",
+    "seed44": "6cb8afb6aeac3bc3124afcd50b3ce72b4a36a45a0e4b8cc3c8bef28566c2561b"
+  },
+  "lambda_bps": 10
+}

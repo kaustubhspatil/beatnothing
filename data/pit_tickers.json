@@ -617,7 +617,7 @@
   "ZTS"
  ],
  "yahoo_symbol": {
-  "WLTW": "WLTW",
+  "WLTW": "WTW",
   "IVZ": "IVZ",
   "CMG": "CMG",
   "ATVI": "ATVI",
@@ -1072,7 +1072,7 @@
   "CTVA": "CTVA",
   "CPB": "CPB",
   "XOM": "XOM",
-  "HFC": "HFC",
+  "HFC": "DINO",
   "DTE": "DTE",
   "HSIC": "HSIC",
   "MCD": "MCD",
@@ -1134,7 +1134,7 @@
   "UBER": "UBER",
   "RCL": "RCL",
   "STLD": "STLD",
-  "VIAC": "VIAC",
+  "VIAC": "PARA",
   "NEM": "NEM",
   "PVH": "PVH",
   "ANET": "ANET",

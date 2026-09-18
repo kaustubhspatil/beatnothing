@@ -19,3 +19,6 @@ secrets/
 
 # the full feature panel is rebuilt by scripts/download_data.py; too large to version monthly
 data/feature_panel.parquet
+
+# the point in time feature panel is rebuilt by scripts/build_pit_universe.py
+data/pit/feature_panel_pit.parquet

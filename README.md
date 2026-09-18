@@ -119,6 +119,56 @@ A probe of a paid archive found 45 of the 47 vanished names in its delisted inde
 other two renamed and still trading, so season two can run on the universe that did not
 know the future.
 
+## Season two: the universe that did not know the future
+
+<p align="center">
+  <img src="leaderboard/pit/figures/two_bars.png" width="900" alt="The point in time universe bar against RSP and SPY, 2022 to 2026">
+</p>
+
+Every S&amp;P 500 member on every day since 2022, 615 names in all, dead ones included,
+built entirely from free data: Yahoo for the 564 that still trade, Yahoo under a new
+ticker for 16 renames (the alias table ships with the package), and Tiingo's free tier
+for 39 names that were acquired or failed, each fetched to its last trading day. The
+membership table decides on which days a name exists. Coverage is 99.5% of the member
+days the index defines, about 501 names a day; the gap is one real hole (Equity
+Residential, which no free source serves after its 2026 merger) and four 2026 spin
+offs too young to have features.
+
+The bar now agrees with the ETF that holds the same names: a Sharpe of 0.47 for the
+point in time universe against 0.44 for RSP on the sealed window, an edge of +0.03 with
+an interval of [−0.01, +0.06]. On the 48 name survivor universe that same gap was
++0.44. The hindsight premium is gone, and with it the illusion that three contestants
+"beat the index".
+
+The frozen contestants, trained on 48 survivors and now asked about 500 names including
+the ones that later died:
+
+<table>
+<tr><th>Contestant, point in time track</th><th>Net Edge</th><th>95% interval</th><th>Edge vs RSP</th><th>Net Sharpe</th><th>Gross Sharpe</th><th>Max drawdown</th><th>Turnover a year</th></tr>
+<tr><td>Always long, the universe bar</td><td>0.00</td><td></td><td>+0.03 [−0.01, +0.06]</td><td>+0.47</td><td>+0.47</td><td>−21%</td><td>0.4×</td></tr>
+<tr><td>Cost aware network, 10 bps term</td><td>+0.00</td><td>[−0.04, +0.06]</td><td>+0.03 [−0.04, +0.11]</td><td>+0.47</td><td>+0.50</td><td>−12%</td><td>3.2×</td></tr>
+<tr><td>Feedforward network</td><td>−0.02</td><td>[−0.03, −0.01]</td><td>+0.01 [−0.03, +0.05]</td><td>+0.45</td><td>+0.47</td><td>−21%</td><td>4.3×</td></tr>
+<tr><td>LightGBM, MSE objective</td><td>−0.11</td><td>[−0.39, +0.11]</td><td>−0.08 [−0.37, +0.13]</td><td>+0.36</td><td>+0.40</td><td>−22%</td><td>7.4×</td></tr>
+<tr><td>LSTM, 60 day windows</td><td>−0.25</td><td>[−0.51, −0.03]</td><td>−0.22 [−0.46, +0.00]</td><td>+0.21</td><td>+0.52</td><td>−22%</td><td>51×</td></tr>
+<tr><td>Cost aware network, no cost term</td><td>−0.33</td><td>[−0.87, +0.20]</td><td>−0.30 [−0.84, +0.24]</td><td>+0.14</td><td>+0.49</td><td>−6%</td><td>12×</td></tr>
+<tr><td>Linear regression, the incumbent</td><td>−0.80</td><td>[−1.15, −0.51]</td><td>−0.77 [−1.10, −0.48]</td><td>−0.34</td><td>+0.47</td><td>−38%</td><td>151×</td></tr>
+<tr><td>1D CNN, 60 day windows</td><td>−1.03</td><td>[−1.40, −0.69]</td><td>−1.00 [−1.42, −0.67]</td><td>−0.56</td><td>+0.53</td><td>−52%</td><td>235×</td></tr>
+</table>
+
+Nothing clears either bar. The order is the same as on the survivor universe, the
+absolute numbers are roughly half, and the models neither collapse nor shine on ten
+times the names, including the failures: a strategy that hugs the bar hugs whatever bar
+it is given. Kronos is not on this track yet; 500 names times 1,200 days of
+autoregressive generation is a day of GPU time, and its verdict on the survivor track
+stands. On 2026 to date every interval includes zero on both tracks.
+
+Two notes on the data. The dead names' histories come from Tiingo's free tier, whose
+terms cover personal use, so this repository carries their realised returns for the
+scored window rather than their raw prices; `scripts/build_pit_universe.py` rebuilds
+the full panel from your own free token in an afternoon. And the contestants here were
+trained on survivors, which is the last hindsight left in the benchmark; retraining
+them on the point in time universe is season three.
+
 ## Enter a contestant
 
 A submission is a folder with a signal file and a metadata file; the engine does the
@@ -156,7 +206,7 @@ python scripts/make_figures.py
 
 ## Roadmap
 
-1. **The point in time universe.** Roughly 500 names a day, including the ones that later died, from an archive that keeps delisted histories. Two probe scripts are in `scripts/`, one for a free tier and one for a paid archive; whichever returns the dead names first wins. This turns the universe bar into the investable bar and lets a contestant earn edge by avoiding disasters, which no survivor universe can reward.
+1. **Retrain on the point in time universe.** The universe is honest now; the contestants were still trained on survivors. Season three trains every reference model on the full membership from 2005, which needs the dead names of two more decades from the free tier, a few hundred symbols across a couple of months of quota.
 2. **Sharper statistics.** The studentized bootstrap of Ledoit and Wolf for Sharpe differences, and a family wise correction so that a crowded leaderboard cannot clear the bar by luck.
 3. **A long short engine** with a borrow cost, so that ranking signals can be judged on the book they were built for.
 4. **An LLM agent contestant**, in the spirit of StockBench, under the same costs and the same bar.
