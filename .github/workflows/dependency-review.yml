@@ -11,7 +11,20 @@ jobs:
   dependency-review:
     runs-on: ubuntu-latest
     steps:
+      - name: Check dependency graph availability
+        id: dependency-graph
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status="$(gh api "repos/${GITHUB_REPOSITORY}" --jq '.security_and_analysis.dependency_graph.status // ""')"
+          if [ "$status" = "enabled" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Skipping dependency review because dependency graph is not enabled for ${GITHUB_REPOSITORY}."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Dependency Review
+        if: steps.dependency-graph.outputs.enabled == 'true'
         uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: moderate
