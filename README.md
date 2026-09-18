@@ -419,10 +419,33 @@ python scripts/make_figures.py pit
 
 ## Roadmap
 
-1. **Reach 2008.** The universe stops at 2013 because the free tier cannot supply the companies that died in the financial crisis. A paid archive would extend it, and a crisis is the one regime this benchmark has never tested anything in.
-2. **An LLM agent contestant**, in the spirit of StockBench, under the same costs and the same bar.
-3. **A technical report with a DOI**, so the method can be cited rather than linked. Anyone whose contestant is merged and survives a year of forward track is a named author on it.
-4. **A year of forward track.** The workflow is armed; the calendar does the rest.
+Ordered by what a benchmark actually needs, which is not the same as what the code needs.
+The first item is worth more than the other six together.
+
+1. **A contestant the author did not write.** Every entry on the board is currently mine,
+   and a benchmark with one contributor is a result with a leaderboard attached. The five
+   minute starter kit above exists for this. The first external contestant is credited by
+   name in the technical report.
+2. **A cost model you can set yourself.** The flat 10 bps is the friction a small book
+   pays and nothing else. A configurable model with a spread term and a square root impact
+   term lets a desk run the board under its own assumptions, which is the difference
+   between a benchmark people read and one people use. It also makes the central finding
+   falsifiable in the most obvious direction: if nothing clears the bar at 10 bps, at what
+   cost level does something?
+3. **A second market and a second horizon.** One market, one currency and one daily
+   horizon is a finding. The same conclusion reproduced on European equities, or on a
+   weekly horizon, is a method. This is the item that separates the two.
+4. **A citable report.** A DOI and a preprint, so the survivorship number and the size
+   simulation can be cited rather than linked. Anyone whose contestant is merged and
+   survives a year of forward track is a named author.
+5. **Reach 2008.** The universe stops at 2013 because the free tier cannot supply the
+   companies that died in the financial crisis. A crisis is the one regime nothing here has
+   ever been tested in.
+6. **A second maintainer with merge rights.** A standard cannot be one person's to change.
+   The rules for how a published claim gets overturned are written down in `CONTRIBUTING.md`
+   precisely so that they do not depend on the author's mood.
+7. **An LLM agent contestant**, in the spirit of StockBench, under the same costs and the
+   same bar. And a year of forward track, which is armed already; the calendar does the rest.
 
 ## What a skeptic should attack, and what happens when they do
 
