@@ -12,7 +12,7 @@ from .engine import Backtest, COST_BPS, TRADING_DAYS
 from .score import bootstrap_sharpe_diff, cost_grid, net_edge, probabilistic_sharpe, sharpe
 from .universe import Membership, coverage_report, start_end_table
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __all__ = ["Backtest", "COST_BPS", "TRADING_DAYS", "net_edge", "sharpe", "bootstrap_sharpe_diff",
            "probabilistic_sharpe", "cost_grid", "Membership", "coverage_report", "start_end_table",
            "peek", "off_by_one", "hindsight_universe", "truncation_test", "__version__"]
