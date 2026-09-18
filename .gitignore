@@ -30,3 +30,5 @@ contestants/kronos_pit_preds.parquet
 
 # strategy and positioning notes, never published
 docs/_private/
+
+leaderboard/*.log
