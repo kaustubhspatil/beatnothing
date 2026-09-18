@@ -1,0 +1,26 @@
+{
+ "rows_compared": 46605,
+ "passed": true,
+ "max_abs_diff": {
+  "ret_1d": 0.0,
+  "ret_5d": 0.0,
+  "ret_21d": 0.0,
+  "ret_63d": 0.0,
+  "vol_21d": 0.0,
+  "atr_14": 0.0,
+  "rsi_14": 0.0,
+  "macd_hist": 0.0,
+  "boll_pct_b": 0.0,
+  "boll_bw": 0.0,
+  "px_vs_sma10": 0.0,
+  "px_vs_sma50": 0.0,
+  "volume_z": 0.0,
+  "vix": 0.0,
+  "vix_chg_5d": 0.0,
+  "treasury_10y": 0.0,
+  "treasury_chg_21d": 0.0,
+  "target": 0.0
+ },
+ "cutoff": "2024-06-28",
+ "names": 60
+}
