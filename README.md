@@ -132,7 +132,7 @@ so what distortion remains is a finite sample effect and not a bug.
 
 The third row is the one that matters most for a leaderboard, and it is why the verdict
 column reports an adjusted p value rather than an interval. Six boards in ten would have
-crowned somebody. On the real boards here the lowest adjusted p value is 0.996 on the
+crowned somebody. On the real boards here the lowest adjusted p value is 0.997 on the
 twenty five contestant board and 0.91 anywhere across both tracks, so nothing comes close.
 
 Getting that experiment right was harder than it looks, and the first attempt was silently
@@ -504,6 +504,13 @@ would attack first.
 ```
 Patil, K. (2026). beatnothing: a net of cost benchmark for daily equity signals. https://github.com/kaustubhspatil/beatnothing
 ```
+
+If you want to rebuild this from nothing, or understand it before you trust it,
+[`docs/STUDY_GUIDE.md`](https://github.com/kaustubhspatil/beatnothing/blob/master/docs/STUDY_GUIDE.md)
+is the full walkthrough: the eight ideas the project rests on, every command in order, the
+checkpoints that tell you the rebuild is correct, and every mistake made along the way
+including the two that nearly published a false claim. It ends with a plain language
+explanation in Hinglish.
 
 A `CITATION.cff` is included. The first five contestants come frozen from the
 [deep learning equity signal capstone](https://github.com/kaustubhspatil/sp500-quantitative-deep-learning),
