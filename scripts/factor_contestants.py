@@ -37,11 +37,9 @@ def monthly_hold(sig: pd.DataFrame) -> pd.DataFrame:
 def submit(name: str, wide: pd.DataFrame, members: pd.DataFrame, rule: str, quantile: float, description: str) -> None:
     long = wide.stack().rename("value").reset_index()
     long.columns = ["Date", "Ticker", "value"]
-    long = long.merge(members, on=["Date", "Ticker"], how="inner")     # only names in the index that day
+    long = long.merge(members, on=["Date", "Ticker"], how="inner")     # index members only
     long = long[long["Date"] >= EVAL_START]
-    # A name too young to have the signal yet simply has no signal. Writing it as a blank
-    # would put a missing value on the board; under the flat when silent rule, leaving the
-    # row out says the same thing honestly.
+    # no signal yet = leave the row out (flat when silent)
     long = long[np.isfinite(long["value"])]
     long["value"] = long["value"].astype("float32")
     d = OUT / name
@@ -50,7 +48,7 @@ def submit(name: str, wide: pd.DataFrame, members: pd.DataFrame, rule: str, quan
     meta = {"name": name, "kind": "predictions", "rule": rule, "quantile": quantile, "training_cutoff": "none (a formula)",
             "registered": REG, "universe": "point in time S&P 500 membership", "rebalance": "monthly, first trading day",
             "description": description,
-            # a formula has no weights to freeze, so the provenance is the script that built it
+            # provenance is the script
             "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             "source_file": Path(__file__).name}
     (d / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")

@@ -17,8 +17,7 @@ def _actual(n=400, k=30, seed=3):
 def _write(tmp_path, folder_name, wide, **meta_extra):
     d = tmp_path / folder_name
     d.mkdir(parents=True, exist_ok=True)
-    # melt, not stack: older pandas drops missing values when stacking, which would quietly
-    # remove the very hole that test_missing_values_are_refused is checking for
+    # melt not stack, older pandas drops NaNs when stacking
     long = wide.rename_axis("Date").reset_index().melt(id_vars="Date", var_name="Ticker", value_name="value")
     long.to_parquet(d / "signal.parquet", index=False)
     meta = {"name": folder_name, "kind": "predictions", "description": "a test entry",
@@ -48,7 +47,7 @@ def test_the_peek_canary_is_rejected(tmp_path):
 def test_the_hindsight_universe_canary_is_caught(tmp_path):
     a = _actual(n=600, k=40)
     rep = validate_submission(_write(tmp_path, "hindsight", hindsight_universe(a, top_n=4)), a)
-    assert rep.warnings or not rep.ok       # picking the winners in advance shows up as an implausible record
+    assert rep.warnings or not rep.ok       # picking winners in advance looks implausible
 
 
 def test_missing_values_are_refused(tmp_path):
@@ -68,7 +67,7 @@ def test_a_short_record_is_refused(tmp_path):
 
 def test_leveraged_weights_are_refused(tmp_path):
     a = _actual()
-    w = pd.DataFrame(0.2, index=a.index, columns=a.columns)     # 30 names at 0.2 is six times the book
+    w = pd.DataFrame(0.2, index=a.index, columns=a.columns)     # 30 names at 0.2 = 6x the book
     rep = validate_submission(_write(tmp_path, "levered", w, kind="weights"), a)
     assert not rep.ok and any("gross exposure" in e for e in rep.errors)
 

@@ -26,8 +26,7 @@ import numpy as np
 from beatnothing.engine import BORROW_BPS_ANNUAL, COST_BPS, Backtest
 from beatnothing.leaderboard import ROOT, TRACKS, WINDOWS, load_actual, load_submission
 
-# Round hard. A daily return is order 1e-3, so six decimals keeps every digit that matters
-# and roughly halves the file against full float repr.
+# 6 decimals is plenty for daily returns and halves the file
 DP = {"gross": 10, "turn": 8, "short": 8}
 
 
@@ -58,10 +57,7 @@ def main() -> None:
     actual = load_actual(ROOT / cfg["actual"])
     folders = sorted(p for p in (ROOT / cfg["submissions"]).iterdir() if p.is_dir())
 
-    # Mirror leaderboard.score_window exactly: slice to the window FIRST, then reindex the
-    # signal onto that calendar. Both steps change the answer. The reindex is "flat when
-    # silent", and slicing first means day one of each window is charged a full entry into
-    # the book, which a single backtest over the whole record never charges.
+    # same as leaderboard.score_window: slice first, then reindex
     windows = {}
     for wname, (start, end) in WINDOWS.items():
         a = actual.loc[(actual.index >= start) & (actual.index <= end)]
@@ -73,10 +69,7 @@ def main() -> None:
                 continue
             w = w.reindex(index=a.index, columns=a.columns)
             rule = meta.get("rule", "long_flat")
-            # Two contestants submit weights rather than predictions, and the engine treats
-            # them differently: weights are used as given and may be short. Mirroring
-            # score_window here is the difference between reproducing the board and
-            # quietly reporting a different number for those two.
+            # weight submissions are used as-is (can be short), match score_window
             kind = meta.get("kind", "predictions")
             if kind == "predictions":
                 kw = {"predictions": w, "rule": rule, "quantile": float(meta.get("quantile", 0.1))}
@@ -98,11 +91,7 @@ def main() -> None:
                 "is_bar": meta["name"] == "always_long",
                 "bar_used": "cash" if dollar_neutral else "universe",
                 "published_net_sharpe": round(stats["net_sharpe"], 6),
-                # The published verdict, carried alongside the series. A positive point
-                # estimate is not "beating the bar": five contestants are above zero on the
-                # sealed window and not one has an interval that clears it. A demo that
-                # counts point estimates would make exactly the mistake this benchmark
-                # exists to prevent, so the interval travels with the number.
+                # ship the verdict with the series so the demo doesn't just count point estimates
                 "net_edge": _pub(published, meta["name"], wname, "net_edge"),
                 "ci_low": _pub(published, meta["name"], wname, "ci_low"),
                 "ci_high": _pub(published, meta["name"], wname, "ci_high"),

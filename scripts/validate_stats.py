@@ -39,7 +39,7 @@ TRADING_DAYS = 252
 def _volatility_path(T: int, rng: np.random.Generator, vol: float, persistence: float) -> np.ndarray:
     h = np.empty(T)
     h[0] = vol
-    for t in range(1, T):                                   # a simple persistent volatility process
+    for t in range(1, T):                                   # persistent vol process
         h[t] = np.sqrt(persistence * h[t - 1] ** 2 + (1 - persistence) * vol ** 2 * rng.gamma(2.0, 0.5))
     return h
 
@@ -132,7 +132,7 @@ def overfitting(T: int, n_variants: int, seed: int) -> dict:
     rng = np.random.default_rng(seed)
     noise = np.column_stack(simulate_board(T, n_variants, rng)[0])
     real = noise.copy()
-    real[:, n_variants // 3] += 0.0009                      # one variant is genuinely better
+    real[:, n_variants // 3] += 0.0009                      # one variant is better
     return {"noise": pbo_cscv(noise, n_splits=10)["pbo"], "with_a_real_edge": pbo_cscv(real, n_splits=10)["pbo"],
             "n_variants": n_variants, "n_observations": T}
 
@@ -208,7 +208,7 @@ def main(sims: int, boot: int, fwe_sims: int, T: int) -> None:
     print("size, no real edge")
     size = rejection_rates(sims, boot, T, edge=0.0, seed=101)
     print("power, a real edge of about a third of a Sharpe")
-    daily_edge = 0.33 * 0.011 / np.sqrt(TRADING_DAYS)      # a third of a Sharpe, in daily mean return
+    daily_edge = 0.33 * 0.011 / np.sqrt(TRADING_DAYS)      # 1/3 Sharpe as daily mean
     power = rejection_rates(sims, boot, T, edge=daily_edge, seed=202)
     print("size as the record lengthens")
     by_len = size_by_length(max(sims // 2, 80), boot, (500, 1000, 2000, 4000), seed=505)

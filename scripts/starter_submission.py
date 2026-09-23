@@ -96,8 +96,7 @@ def main() -> None:
             .rename(columns={"level_0": "Date", "level_1": "Ticker"}))
     long = long[np.isfinite(long["value"])].copy()
     long["value"] = long["value"].astype("float32")
-    # A day a contestant cannot rank is a day it sits in cash. Dropping those rows is how
-    # you say so; filling them with a constant is how you accidentally claim a position.
+    # drop days you can't rank, don't fill with a constant
     long = long[["Date", "Ticker", "value"]].sort_values(["Date", "Ticker"]).reset_index(drop=True)
 
     folder = out_dir / a.name

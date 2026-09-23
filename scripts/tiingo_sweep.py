@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 KEY_FILE = Path.home() / ".secrets" / "tiingo_api_key.txt"
 OUT = ROOT / "leaderboard" / "tiingo_coverage_full.json"
 CACHE = ROOT / "data" / "raw" / "tiingo"
-# names Tiingo keeps under the symbol they traded under after leaving the index
+# tickers Tiingo keeps after index exit
 ALIASES = {"FRC": "FRCB"}
 
 
@@ -55,7 +55,7 @@ def main(spacing: float, save_prices: bool, tickers: str | None = None) -> None:
             json.loads((ROOT / "leaderboard" / "coverage_report.json").read_text(encoding="utf-8"))["left_and_unavailable_tickers"])
     done = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
     seed = ROOT / "leaderboard" / "tiingo_coverage.json"
-    if seed.exists():                       # fold in the five name probe so they are not fetched twice
+    if seed.exists():                       # reuse the probe results
         for row in json.loads(seed.read_text(encoding="utf-8"))["detail"]:
             done.setdefault(row["ticker"], {"status": 200 if row["rows"] else 404, "rows": row["rows"],
                                             "first": row["first"], "last": row["last"]})
@@ -64,7 +64,7 @@ def main(spacing: float, save_prices: bool, tickers: str | None = None) -> None:
     if save_prices:
         CACHE.mkdir(parents=True, exist_ok=True)
     for i, t in enumerate(todo, 1):
-        while True:                      # a rate limit is never a failure, only a wait
+        while True:                      # rate limit = wait, not fail
             code, rows = fetch(ALIASES.get(t, t), key)
             if code != 429:
                 break

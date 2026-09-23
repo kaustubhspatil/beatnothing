@@ -53,7 +53,7 @@ def main(probe_all: bool) -> None:
         rows.append({"ticker": t, "meta_status": code, "end_date": (meta.get("endDate") if isinstance(meta, dict) else None),
                      "rows": n, "first": first, "last": last})
         print(f"{t:6s} meta {code} history {code2} rows {n:5d} {first} -> {last}", flush=True)
-        time.sleep(1.5)                      # stay well inside 50 requests an hour
+        time.sleep(1.5)                      # stay under 50 req/hour
     df = pd.DataFrame(rows)
     covered = df[df["rows"] > 250]["ticker"].tolist()
     print(f"\nfull histories returned for {len(covered)} of {len(names)} probed names")

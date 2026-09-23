@@ -27,7 +27,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
-# expandable segments keeps a long run of many different batch shapes from fragmenting
+# avoid fragmentation with many batch shapes
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import numpy as np
@@ -90,7 +90,7 @@ def main(stride: int, batch: int, context: int, samples: int) -> None:
                         rows.append({"Date": d, "Ticker": names[k], "value": float(o["close"].iloc[0] / last[k] - 1)})
         except torch.cuda.OutOfMemoryError:
             skipped.append(str(pd.Timestamp(d).date()))
-            rows = [r for r in rows if r["Date"] != d]          # a half scored date is worse than none
+            rows = [r for r in rows if r["Date"] != d]          # skip partially scored dates
             print(f"  out of memory on {pd.Timestamp(d).date()}, skipping it", flush=True)
         finally:
             if torch.cuda.is_available():

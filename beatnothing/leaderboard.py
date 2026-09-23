@@ -61,7 +61,7 @@ ROOT = find_root()
 SUBMISSIONS = ROOT / "submissions"
 LEADERBOARD = ROOT / "leaderboard"
 
-# Two tracks share one engine and one scoring rule and differ only in the universe.
+# two tracks, same engine, different universe
 TRACKS = {
     "survivor48": {"actual": "data/actual_returns.parquet", "submissions": "submissions", "out": "leaderboard",
                    "universe": "48 large cap names chosen in August 2026 (a survivor universe)"},
@@ -89,10 +89,7 @@ def score_window(actual: pd.DataFrame, wide: pd.DataFrame, kind: str, start, end
     w = wide.loc[(wide.index >= start) & (wide.index <= end)]
     if len(a) == 0 or len(w) == 0:
         return None
-    # Flat when silent: a day with no signal is a day in cash, not a day removed from the
-    # record. Without this a contestant could submit only on the days it liked the look of
-    # and have its Sharpe computed on that subset. It also puts every contestant on one
-    # calendar, which the joint test across the board requires.
+    # missing days = cash, so nobody can cherry-pick which days count
     w = w.reindex(index=a.index, columns=a.columns)
     if kind != "predictions":
         w = w.fillna(0.0)
@@ -100,19 +97,17 @@ def score_window(actual: pd.DataFrame, wide: pd.DataFrame, kind: str, start, end
     bt = Backtest(a, cost_bps=cost_bps, **kw)
     stats = bt.stats()
     r = bt.daily_returns
-    # a dollar neutral book competes with cash, not with a long only bar
+    # dollar neutral book vs cash
     dollar_neutral = rule == "long_short" or (kind == "weights" and abs(stats["avg_exposure"]) < 0.1 and stats["avg_short_exposure"] > 0.05)
     stats["bar_used"] = "cash" if dollar_neutral else "universe"
     b = pd.Series(0.0, index=r.index) if dollar_neutral else bar.reindex(r.index).fillna(0.0)
     grid = cost_grid(a, grid=(0, 10, 20), **kw)
     stats.update({"bar_sharpe": sharpe(b.values), "gross_sharpe": grid[0], "net_sharpe_20bps": grid[20]})
     if stats["avg_short_exposure"] > 0.01:
-        # The bottom decile of almost any screen is where hard to borrow names live, so a
-        # flat fifty basis points a year is the optimistic case. Price the pessimistic one.
+        # assume the pessimistic borrow cost for the short side
         stats["net_sharpe_borrow_500bps"] = Backtest(a, cost_bps=cost_bps, borrow_bps_annual=500.0, **kw
                                                      ).stats()["net_sharpe"]
-    # A dollar neutral book competes with cash, so measuring it against a long index says
-    # nothing about it; the comparison is only meaningful for a contestant that is long.
+    # only compare long books to the long index
     if investable is not None and not dollar_neutral:
         inv = investable.reindex(r.index)
         ok = inv.notna().values
@@ -181,8 +176,7 @@ def build(actual_path: Path, n_boot: int = 2000, root: Path | None = None, submi
                 bar_series[name][meta["name"]] = b.values
         board["entries"].append(entry)
 
-    # One joint bootstrap per window: it gives every contestant its studentized interval
-    # and p value, and the stepdown that controls the chance of even one false claim.
+    # one joint bootstrap per window (intervals, p values, stepdown)
     by_name = {en["meta"]["name"]: en for en in board["entries"]}
     board["multiple_testing"] = {}
     for wname in WINDOWS:

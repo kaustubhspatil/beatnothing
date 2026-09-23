@@ -17,20 +17,19 @@ venv/
 *.key
 secrets/
 
-# the full feature panel is rebuilt by scripts/download_data.py; too large to version monthly
+# rebuilt by scripts/download_data.py, too big to commit
 data/feature_panel.parquet
 
-# the point in time feature panel is rebuilt by scripts/build_pit_universe.py
-# feature panels and merged prices are rebuilt by scripts/build_pit_universe.py
+# rebuilt by scripts/build_pit_universe.py
 data/pit/feature_panel_pit*.parquet
 data/pit/prices_pit*.parquet
 
-# large rebuilt artifacts and the Kronos clone
+# large rebuilt files and the Kronos clone
 kronos/
 data/pit/prices_pit.parquet
 contestants/kronos_pit_preds.parquet
 
-# strategy and positioning notes, never published
+# private notes
 docs/_private/
 
 leaderboard/*.log

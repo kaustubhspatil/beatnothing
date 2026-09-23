@@ -35,12 +35,11 @@ from scipy.stats import kurtosis, norm, rankdata, skew
 
 TRADING_DAYS = 252
 EULER = 0.5772156649015329
-# a floor on a variance, chosen so that its 1.5 power is still representable:
-# 1e-300 ** 1.5 underflows to zero and turns the gradient into a NaN
+# variance floor, 1e-300 ** 1.5 underflows to 0 and gives NaN
 _TINY = 1e-30
 
 
-# ── The delta method over Sharpe moments ─────────────────────────────────
+# delta method for Sharpe
 
 def _sr_and_grad(v: np.ndarray) -> tuple[float, np.ndarray]:
     """Sharpe of one series from its moments (mean, mean of squares) and the gradient."""
@@ -161,7 +160,7 @@ def sharpe_diff_and_se(x, y=None, prewhite: bool = True, annualize: bool = True)
     return stat * f, float(np.sqrt(max(var, 0.0))) * f
 
 
-# ── Block bootstrap machinery ────────────────────────────────────────────
+# block bootstrap
 
 def politis_white_block_size(x, default: int = 5) -> int:
     """
@@ -215,7 +214,7 @@ def circular_block_indices(T: int, block: int, rng: np.random.Generator) -> np.n
     return idx[:T]
 
 
-# ── The joint test: studentized bootstrap plus the stepdown ──────────────
+# joint test: studentized bootstrap + stepdown
 
 def joint_sharpe_tests(strategies: dict, bars: dict, n_boot: int = 1000, block_size: int | None = None,
                        alpha: float = 0.05, seed: int = 0, prewhite: bool = True) -> dict:
@@ -249,10 +248,8 @@ def joint_sharpe_tests(strategies: dict, bars: dict, n_boot: int = 1000, block_s
     se = np.zeros(len(names))
     live = np.zeros(len(names), dtype=bool)
     for j, n in enumerate(names):
-        # A contestant that is its own bar has nothing to test. Decide that from the series
-        # rather than from the standard error: the quadratic form behind the error can come
-        # back as 1e-17 instead of zero on a different linear algebra library, and dividing
-        # a near zero difference by a near zero error would feed noise into the stepdown.
+        # contestant equal to its own bar has nothing to test, check the series directly
+        # since the SE can come back as ~1e-17 instead of 0
         if np.allclose(strategies[n], bars[n], rtol=0, atol=1e-15):
             continue
         diff[j], se[j] = sharpe_diff_and_se(strategies[n], bars[n], prewhite=prewhite)
@@ -287,14 +284,14 @@ def joint_sharpe_tests(strategies: dict, bars: dict, n_boot: int = 1000, block_s
                   "ci_low": float(lo), "ci_high": float(hi), "p_value": p_one, "p_value_two_sided": p_two,
                   "clears_bar": bool(lo > 0)}
 
-    # Romano and Wolf stepdown: adjusted p values, in descending order of the statistic
+    # Romano-Wolf stepdown
     order = list(np.argsort(-t))
     remaining = list(order)
     running = 0.0
     for j in order:
         col_max = boot[:, remaining].max(axis=1) if remaining else np.zeros(n_boot)
         p_adj = float((np.sum(col_max >= t[j]) + 1) / (n_boot + 1))
-        running = max(running, p_adj)          # adjusted p values must not decrease down the order
+        running = max(running, p_adj)          # keep adjusted p values monotonic
         out[names[j]]["p_value_fwe"] = running
         out[names[j]]["clears_bar_fwe"] = bool(running <= alpha and live[j] and t[j] > 0)
         remaining.remove(j)
@@ -314,7 +311,7 @@ def ledoit_wolf_test(x, y=None, n_boot: int = 1000, block_size: int | None = Non
     return out
 
 
-# ── Overfitting: how much of this was the search? ────────────────────────
+# overfitting check
 
 def pbo_cscv(returns: np.ndarray, n_splits: int = 16) -> dict:
     """

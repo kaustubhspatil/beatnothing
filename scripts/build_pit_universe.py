@@ -30,8 +30,7 @@ from beatnothing.universe import PIT_DIR
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
 OUT = ROOT / "data" / "pit"
-# Prices are read from `start`; features need about a year of warm up before the first
-# usable row, and nothing before `eval_start` is scored.
+# ~1 year warmup before the first feature row, scoring starts at eval_start
 DEFAULTS = {"start": "2021-01-01", "warmup": "2021-06-01", "eval_start": "2022-01-01"}
 
 
@@ -56,9 +55,7 @@ def main(start: str, warmup: str, eval_start: str, suffix: str = "") -> None:
     aliases.pop("_about", None)
     rejected = aliases.pop("_rejected", {})
 
-    # Every name that was a member at any point in the window, taken from the membership
-    # table itself so that any start date works. A name is needed from `warmup` because
-    # the features need history before the first scored day.
+    # every name that was a member at any point, loaded from warmup for feature history
     tick = json.loads((ROOT / "data" / "pit_tickers.json").read_text())
     span = pd.date_range(START, pd.Timestamp.today(), freq="MS").tolist() + [pd.Timestamp(START)]
     members = sorted(set().union(*(membership_all.on(min(d, membership_all.last_date)) for d in span)))
@@ -88,14 +85,14 @@ def main(start: str, warmup: str, eval_start: str, suffix: str = "") -> None:
                 continue
             source[t] = f"yahoo:{sym}"
         s = s[s["Date"] >= START].copy()
-        if len(s) < 70:            # a brand new listing needs about 63 days of history before its first feature row
+        if len(s) < 70:            # new listings need ~63 days before the first feature row
             missing.append(t)
             source.pop(t, None)
             continue
         s["Ticker"] = t
         blocks.append(s)
     prices = pd.concat(blocks, ignore_index=True)
-    prices.to_parquet(OUT / "prices_pit.parquet", index=False)      # merged OHLCV, all sources (gitignored)
+    prices.to_parquet(OUT / "prices_pit.parquet", index=False)      # merged OHLCV (gitignored)
 
     raw = RAW / "sp500_stocks.csv"
     vix = pd.read_csv(RAW / "vix.csv", parse_dates=["Date"], index_col="Date")["Close"].rename("vix")
@@ -104,13 +101,13 @@ def main(start: str, warmup: str, eval_start: str, suffix: str = "") -> None:
     panel = features.build_feature_panel(prices, market, tickers=sorted(prices["Ticker"].unique()))
     panel = panel[panel["Date"] >= WARMUP].reset_index(drop=True)
 
-    # membership mask: keep a row only if the ticker was in the index on that date
+    # keep rows only while the ticker is in the index
     dates = sorted(panel["Date"].unique())
     member_sets = {d: membership.on(d) for d in dates}
     keep = np.fromiter((row.Ticker in member_sets[row.Date] for row in panel[["Date", "Ticker"]].itertuples(index=False)),
                        dtype=bool, count=len(panel))
     panel = panel[keep].reset_index(drop=True)
-    # partial day guard: a final session caught mid download leaves a date with a handful of names
+    # drop a partial last day from a mid-session download
     per_day = panel.groupby("Date")["Ticker"].size()
     thin = per_day[per_day < 0.5 * per_day.median()].index
     if len(thin):
@@ -120,7 +117,7 @@ def main(start: str, warmup: str, eval_start: str, suffix: str = "") -> None:
     actual = panel[panel["Date"] >= EVAL_START][["Date", "Ticker", "target"]]
     actual.to_parquet(OUT / f"actual_returns_pit{suffix}.parquet", index=False)
 
-    # coverage: member days the panel supplies against member days the index defines
+    # coverage vs index membership days
     eval_dates = [d for d in dates if d >= pd.Timestamp(EVAL_START)]
     defined = sum(len(member_sets[d]) for d in eval_dates)
     supplied = int(len(actual))

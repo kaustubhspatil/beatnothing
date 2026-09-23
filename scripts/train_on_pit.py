@@ -36,8 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "submissions_pit"
 MODELS = ROOT / "contestants" / "models_pit"
 REG = "2026-09-18"
-# A ranking signal on daily returns is noisy; the holding period decides whether its
-# information survives the trading. Register several and let the board show the trade off.
+# register a few holding periods, let the board show the tradeoff
 HOLDS = (1, 5, 21)
 
 

@@ -115,9 +115,7 @@ def validate_submission(folder: Path, actual: pd.DataFrame | None = None) -> Rep
     if not (meta.get("model_sha256") or meta.get("source_sha256")):
         rep.warn("no model_sha256 or source_sha256: the entry cannot be tied to a frozen artifact later")
 
-    # Frozen means frozen. The signal file's own hash pins the content, and because an
-    # entry arrives by pull request, the public git history dates it: the two together
-    # are a registration nobody can move afterwards, with no third party involved.
+    # signal hash + git history date the registration
     digest = hashlib.sha256(sig_path.read_bytes()).hexdigest()
     rep.facts["signal_sha256"] = digest[:16] + "..."
     claimed = meta.get("signal_sha256")
@@ -170,8 +168,7 @@ def validate_submission(folder: Path, actual: pd.DataFrame | None = None) -> Rep
             rep.error(f"gross exposure reaches {gross.max():.3f}; the engine allows at most one")
 
     if rule in ("long_top", "long_short"):
-        # a decile rule needs the signal to actually separate names; an early stopped tree
-        # model can emit two or three distinct values a day and rank nothing
+        # decile rule needs enough distinct values to rank
         distinct = wide.nunique(axis=1)
         names = wide.notna().sum(axis=1)
         share = float((distinct / names.replace(0, np.nan)).median())

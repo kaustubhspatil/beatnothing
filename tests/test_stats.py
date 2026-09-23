@@ -21,7 +21,7 @@ def test_single_series_se_matches_the_iid_formula():
     sr, se = sharpe_diff_and_se(x)
     sr_daily = sr / np.sqrt(TRADING_DAYS)
     lo_se = np.sqrt((1 + 0.5 * sr_daily ** 2) / len(x)) * np.sqrt(TRADING_DAYS)
-    assert abs(se - lo_se) / lo_se < 0.25          # HAC on iid data lands near the analytical value
+    assert abs(se - lo_se) / lo_se < 0.25          # HAC on iid data ~ analytical
 
 
 def test_difference_se_is_near_the_independent_sum():
@@ -40,7 +40,7 @@ def test_autocorrelation_widens_the_standard_error():
     dependent = _ar1(3000, 0.4, 0.01, 0.0004, rng)
     _, se_iid = sharpe_diff_and_se(iid)
     _, se_dep = sharpe_diff_and_se(dependent)
-    assert se_dep > se_iid * 1.2                   # ignoring dependence would understate the error
+    assert se_dep > se_iid * 1.2                   # ignoring dependence understates the error
 
 
 def test_hac_covariance_is_symmetric_and_positive_on_the_diagonal():
@@ -71,7 +71,7 @@ def test_a_bar_against_itself_is_degenerate_but_safe():
     res = ledoit_wolf_test(x, x, n_boot=100, seed=8)
     assert res["net_edge"] == 0.0 and res["se"] == 0.0
     assert res["p_value"] == 1.0 and not res["clears_bar"] and not res["clears_bar_fwe"]
-    # the same must hold when the two series differ only by floating point dust
+    # same with float noise between the series
     dusty = x + np.full_like(x, 1e-18)
     res = ledoit_wolf_test(dusty, x, n_boot=100, seed=8)
     assert res["se"] == 0.0 and res["p_value"] == 1.0 and not res["clears_bar_fwe"]
@@ -95,7 +95,7 @@ def test_stepdown_is_never_more_generous_than_the_individual_test():
     res = joint_sharpe_tests(strategies, bars, n_boot=300, seed=12)["contestants"]
     for name, r in res.items():
         assert r["p_value_fwe"] >= r["p_value"] - 1e-12
-    assert res["winner"]["clears_bar_fwe"]         # a real edge still survives the correction
+    assert res["winner"]["clears_bar_fwe"]         # real edge survives the correction
     assert sum(r["clears_bar_fwe"] for r in res.values()) == 1
 
 
@@ -120,10 +120,10 @@ def test_influence_series_reproduces_the_standard_error():
     x = rng.normal(0.0005, 0.01, 2000)
     y = rng.normal(0.0002, 0.01, 2000)
     inf = influence_series(x, y)
-    assert abs(inf.mean()) < 1e-12                 # an influence function is centered by construction
+    assert abs(inf.mean()) < 1e-12                 # centered by construction
     _, se = sharpe_diff_and_se(x, y, prewhite=False)
     naive = inf.std() / np.sqrt(len(inf)) * np.sqrt(TRADING_DAYS)
-    assert abs(se - naive) / se < 0.3              # its spread is the standard error, up to the HAC correction
+    assert abs(se - naive) / se < 0.3              # spread ~ SE (up to HAC)
 
 
 def test_block_size_grows_with_dependence():
@@ -139,7 +139,7 @@ def test_pbo_is_one_half_for_pure_noise_and_low_for_a_real_edge():
     assert 0.3 < pbo_cscv(noise, n_splits=8)["pbo"] < 0.7
 
     with_edge = rng.normal(0.0002, 0.01, (2000, 12))
-    with_edge[:, 3] += 0.0015                      # one variant is genuinely better
+    with_edge[:, 3] += 0.0015                      # one variant is better
     assert pbo_cscv(with_edge, n_splits=8)["pbo"] < 0.2
 
 

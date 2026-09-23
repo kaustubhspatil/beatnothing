@@ -14,10 +14,10 @@ import pandas as pd
 
 TRADING_DAYS = 252
 TARGET_HORIZON = 1
-BENCHMARKS = ["SPY", "QQQ", "RSP"]   # never model inputs; RSP is the investable equal weight index
+BENCHMARKS = ["SPY", "QQQ", "RSP"]   # not model inputs, RSP = equal weight index
 
 
-# ── Indicators (each takes per-ticker series, returns an aligned series) ──
+# indicators
 
 def rsi(close, window=14):
     """Wilder's Relative Strength Index, 0-100."""
@@ -58,7 +58,7 @@ def atr(high, low, close, window=14):
     return tr.ewm(alpha=1 / window, adjust=False).mean() / close
 
 
-# ── Feature matrix construction ──────────────────────────────────────────
+# feature matrix
 
 FEATURE_COLUMNS = [
     "ret_1d", "ret_5d", "ret_21d", "ret_63d",
@@ -101,12 +101,12 @@ def build_stock_features(group):
     f["px_vs_sma10"] = close / close.rolling(10).mean() - 1
     f["px_vs_sma50"] = close / close.rolling(50).mean() - 1
 
-    # volume anomaly (z-score against trailing 21 days)
+    # volume z-score vs last 21 days
     vol_mean = volume.rolling(21).mean()
     vol_std = volume.rolling(21).std()
     f["volume_z"] = ((volume - vol_mean) / vol_std.replace(0, np.nan)).clip(-5, 5)
 
-    # target: next-day simple return (the one deliberate forward-shift)
+    # target: next-day return
     f["target"] = ret.shift(-TARGET_HORIZON)
     return f
 
@@ -130,7 +130,7 @@ def build_feature_panel(prices, market, tickers=None):
         blocks.append(f)
     panel = pd.concat(blocks, ignore_index=True)
 
-    # market context, shared across tickers on each date
+    # market context, same for all tickers
     mkt = market.copy()
     mkt["vix_chg_5d"] = mkt["vix"].pct_change(5)
     mkt["treasury_chg_21d"] = mkt["treasury_10y"].diff(21)

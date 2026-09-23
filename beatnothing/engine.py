@@ -43,13 +43,8 @@ def weights_from_predictions(predictions: pd.DataFrame, actual: pd.DataFrame, ru
     valid = actual.notna()
     if rule == "long_flat":
         return _equal_weight((predictions > 0) & valid)
-    # Ties are broken deterministically so that a decile rule always holds a decile. A
-    # signal with few distinct values, which is what an early stopped tree model produces,
-    # otherwise gives most names the same average rank, no name clears the threshold and
-    # the book sits empty: the rule would silently stop trading rather than say it cannot
-    # rank. Breaking ties by column order is arbitrary, and that is the honest reading of
-    # a signal that declines to distinguish those names; `beatnothing.validate` warns when
-    # a submission has too little resolution for the rule it asked for.
+    # break ties by column order so a decile rule always holds a decile
+    # (otherwise a low-resolution signal ends up with an empty book)
     ranks = predictions.where(valid).rank(axis=1, pct=True, method="first")
     longs = (ranks > 1 - quantile) & valid
     if rule == "long_top":
@@ -84,7 +79,7 @@ class Backtest:
             weights = weights_from_predictions(predictions, actual, rule, quantile)
         else:
             weights, actual = weights.align(actual, join="inner")
-            # no position in a name on a day it has no realised return (not a member, not listed)
+            # no position on days a name has no return
             weights = weights.fillna(0.0).where(actual.notna(), 0.0)
             if not allow_short and (weights < -1e-12).any().any():
                 raise ValueError("weights must be non negative unless allow_short=True")

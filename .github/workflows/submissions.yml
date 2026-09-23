@@ -1,7 +1,5 @@
 name: submissions
-# Every entry on the board is checked by a machine before a human looks: structure, the
-# engine's rules, and a leakage smell test on the information coefficient. A pull request
-# that touches a submissions folder cannot merge red.
+# check submissions: structure, engine rules, leakage smell test on IC
 on:
   pull_request:
     paths:

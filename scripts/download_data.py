@@ -25,16 +25,14 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
 
-# The capstone universe: 48 large cap US stocks chosen in August 2026 from the then
-# current S&P 500, two per sector bucket, plus SPY and QQQ as benchmarks only.
-# This is a survivor universe; the README states what that costs.
+# 48 large caps picked Aug 2026, 2 per sector, SPY/QQQ as benchmarks
+# note: survivor universe, see README
 TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "AVGO", "CRM", "JPM", "BAC", "GS", "MS",
            "WFC", "BLK", "C", "AXP", "UNH", "JNJ", "PFE", "ABBV", "MRK", "LLY", "WMT", "PG", "KO", "PEP",
            "COST", "MCD", "NKE", "XOM", "CVX", "COP", "SLB", "CAT", "BA", "HON", "UPS", "GE", "DIS",
            "NFLX", "CMCSA", "VZ", "LIN", "APD", "NEE", "DUK", "AMT", "PLD", "SPY", "QQQ", "RSP"]
 MARKET = {"vix": "^VIX", "treasury_10y": "^TNX"}
-# Investable bars: next day returns of ETFs that hold the whole index, dead names included.
-# RSP is the equal weight S&P 500 (since 2003), SPY the cap weighted one. Neither is a model input.
+# investable bars: RSP (equal weight) and SPY, not model inputs
 BARS = ["RSP", "SPY"]
 
 
@@ -80,7 +78,7 @@ def rebuild_actual() -> None:
     panel.to_parquet(ROOT / "data" / "feature_panel.parquet", index=False)
     actual = panel[panel["Date"] >= "2022-01-01"][["Date", "Ticker", "target"]]
     actual.to_parquet(ROOT / "data" / "actual_returns.parquet", index=False)
-    # investable bars, aligned like the target: the return earned from the close of t to t+1
+    # bar returns aligned like the target (close t to t+1)
     wide = prices.pivot(index="Date", columns="Ticker", values="Close").sort_index()
     bars = pd.DataFrame({b: wide[b].pct_change().shift(-1) for b in BARS if b in wide.columns})
     bars = bars.loc["2005-01-01":].dropna(how="all").reset_index()

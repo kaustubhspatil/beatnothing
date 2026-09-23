@@ -21,7 +21,7 @@ def test_coverage_report_counts_leavers():
     rep = coverage_report(m, available_tickers=set(), start="2021-12-31", end="2026-09-17")
     assert rep["members_at_start"] == 505
     assert rep["left_during_window"] == 94
-    assert rep["left_and_unavailable"] == 94          # nothing available, so every leaver is missing
+    assert rep["left_and_unavailable"] == 94          # nothing available, all leavers missing
     assert "SIVB" in rep["left_and_unavailable_tickers"]
     assert len(start_end_table()) > 1000
 
@@ -35,7 +35,7 @@ def test_cli_score_reports_net_edge(tmp_path, capsys):
     long.columns = ["Date", "Ticker", "target"]
     long.to_parquet(tmp_path / "actual.parquet", index=False)
     sig = long.rename(columns={"target": "value"})
-    sig["value"] = 1.0                                   # always long: must equal the bar exactly
+    sig["value"] = 1.0                                   # always long == bar
     sig.to_parquet(tmp_path / "signal.parquet", index=False)
 
     rc = main(["score", str(tmp_path / "signal.parquet"), "--actual", str(tmp_path / "actual.parquet"),

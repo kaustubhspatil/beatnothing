@@ -1,7 +1,5 @@
 name: forward track
-# Once a month: pull the latest prices, extend the realised returns, re score every
-# registered submission on the days that arrived after its registration date, and
-# commit the refreshed leaderboard. Frozen signals never change; only the calendar does.
+# monthly: pull prices, rescore submissions on new days, commit the leaderboard
 on:
   schedule:
     - cron: "0 6 1 * *"

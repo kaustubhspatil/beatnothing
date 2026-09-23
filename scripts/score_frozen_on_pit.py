@@ -39,7 +39,7 @@ def submit(name: str, frame: pd.DataFrame, kind: str, description: str, extra: d
     d = OUT / name
     d.mkdir(parents=True, exist_ok=True)
     frame = frame[frame["Date"] >= EVAL_START].copy()
-    frame["value"] = frame["value"].astype("float32")      # 575k rows per contestant: keep the repository lean
+    frame["value"] = frame["value"].astype("float32")      # 575k rows each, keep the repo small
     frame[["Date", "Ticker", "value"]].to_parquet(d / "signal.parquet", index=False, compression="zstd")
     meta = {"name": name, "kind": kind, "training_cutoff": "2018-12-31", "validation": "2019-01-01 to 2021-12-31",
             "registered": REG, "universe": "point in time S&P 500 membership; model trained on 48 survivor names",
@@ -103,7 +103,7 @@ def main() -> None:
         submit(name, seq_base.assign(value=p), "predictions", f"{desc}, frozen 2026 08 20, scored on every member.",
                {"model_sha256": sha(MODELS / file)})
 
-    # cost aware nets: weights per (date, name) = sigmoid / N over the names present that day, mean of three seeds
+    # cost aware nets: sigmoid / N per day, mean of 3 seeds
     dates = np.sort(panel["Date"].unique())
     for lam in (0, 10):
         acc = None

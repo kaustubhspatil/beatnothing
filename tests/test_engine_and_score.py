@@ -31,7 +31,7 @@ def test_costs_are_charged_on_every_flip():
     bt0 = Backtest(r, predictions=flip, cost_bps=0.0)
     bt10 = Backtest(r, predictions=flip, cost_bps=10.0)
     assert bt10.daily_returns.mean() < bt0.daily_returns.mean()
-    # a full flip every day costs 1 unit of turnover per day (2 when re entering)
+    # full flip daily = 1 turnover/day (2 on re-entry)
     assert bt10.turnover.iloc[2:].mean() == pytest.approx(1.0)
 
 

@@ -31,12 +31,12 @@ def test_long_top_holds_the_top_decile_only():
 
 def test_borrow_is_charged_on_the_short_book_only():
     a = _actual()
-    a[:] = 0.0                                                   # no price moves: only costs remain
+    a[:] = 0.0                                                   # no price moves, only costs
     pred = pd.DataFrame(np.random.default_rng(3).normal(size=a.shape), index=a.index, columns=a.columns)
-    pred[:] = pred.iloc[0].values                                # constant ranking: no turnover after day one
+    pred[:] = pred.iloc[0].values                                # constant ranking, no turnover after day one
     bt = Backtest(a, predictions=pred, rule="long_short", cost_bps=0.0, borrow_bps_annual=252 * 100)  # 1% a day on shorts
     assert bt.stats()["avg_short_exposure"] == pytest.approx(0.5)
-    assert bt.daily_returns.iloc[5] == pytest.approx(-0.005)     # half the book short at 1% a day
+    assert bt.daily_returns.iloc[5] == pytest.approx(-0.005)     # half the book short at 1%/day
     long_only = Backtest(a, predictions=pred, rule="long_top", cost_bps=0.0, borrow_bps_annual=252 * 100)
     assert long_only.daily_returns.iloc[5] == pytest.approx(0.0)
 

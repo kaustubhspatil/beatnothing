@@ -61,7 +61,7 @@ def label(name):
 def fig_net_edge(board):
     windows = list(board["windows"].items())
     first = windows[0][0]
-    # one fixed row order (by the first window) so both panels share labels honestly
+    # same row order for both panels
     order = sorted([en["meta"]["name"] for en in board["entries"]
                     if first in en["windows"] and en["meta"]["name"] != "always_long"],
                    key=lambda n: next(en["windows"][first]["net_edge"] for en in board["entries"] if en["meta"]["name"] == n))
@@ -69,8 +69,7 @@ def fig_net_edge(board):
     has_inv = board.get("investable_bar") is not None
     fig, axes = plt.subplots(1, 2, figsize=(12, max(5.8, 0.28 * len(order) + 2.2)), sharey=True)
     for ax, (wname, (s, e)) in zip(axes, windows):
-        # One contestant can be far enough below zero to squash everyone else, so the axis
-        # covers the bulk and anything beyond it is drawn as an arrow at the edge.
+        # clip the axis, draw outliers as arrows
         edges = [by_name[n][wname]["ci_low"] for n in order if wname in by_name[n]]
         highs = [by_name[n][wname]["ci_high"] for n in order if wname in by_name[n]]
         lo_lim = float(np.quantile(edges, 0.10)) * 1.35
@@ -82,12 +81,12 @@ def fig_net_edge(board):
             c = GOOD if r["clears_bar"] else (BAD if r["ci_high"] < 0 else MUTED)
             lo, hi = max(r["ci_low"], lo_lim), min(r["ci_high"], hi_lim)
             ax.plot([lo, hi], [i, i], color=c, lw=2.2, solid_capstyle="round")
-            if r["ci_low"] < lo_lim:                       # the interval runs off the page
+            if r["ci_low"] < lo_lim:                       # off the chart
                 ax.annotate("", xy=(lo_lim, i), xytext=(lo_lim + 0.06 * (hi_lim - lo_lim), i),
                             arrowprops=dict(arrowstyle="-|>", color=c, lw=1.6))
             if lo_lim <= r["net_edge"] <= hi_lim:
                 ax.plot(r["net_edge"], i, "o", color=c, ms=7, zorder=3)
-            if has_inv and "edge_vs_investable" in r:      # hollow marker: the same contestant against RSP
+            if has_inv and "edge_vs_investable" in r:      # hollow = vs RSP
                 y = i - 0.28
                 ax.plot([max(r["ci_low_vs_investable"], lo_lim), min(r["ci_high_vs_investable"], hi_lim)],
                         [y, y], color=ORANGE, lw=1.2, alpha=0.9)
@@ -220,12 +219,12 @@ def fig_forward(board, actual):
         curves[meta["name"]] = Backtest(a, **kw).equity / 1e6
     order = sorted(curves, key=lambda k: -curves[k].iloc[-1])
     palette = [BLUE, ORANGE, AQUA, YELLOW, "#e87ba4", "#4a3aa7", "#e34948", "#008300", MUTED]
-    # spread end labels so converging curves stay readable (minimum vertical gap in data units)
+    # spread end labels so they don't overlap
     ends = np.array([curves[n].iloc[-1] for n in order])
     span = max(np.nanmax([c.max() for c in curves.values()]) - np.nanmin([c.min() for c in curves.values()]), 1e-6)
     gap = 0.045 * span
     pos = ends.copy()
-    for i in range(1, len(pos)):               # order is descending, so push each label below the previous one
+    for i in range(1, len(pos)):               # push each label below the previous
         pos[i] = min(pos[i], pos[i - 1] - gap)
     for i, name in enumerate(order):
         c = curves[name]
@@ -285,6 +284,6 @@ if __name__ == "__main__":
     fig_bars(actual, bars)
     from beatnothing.universe import PIT_DIR
     gone = fig_survivorship(available=set(actual.columns) | {
-        # names that left the index but still trade under the same ticker (checked 2026 09 17)
+        # left the index but still trade under the same ticker (checked 2026-09-17)
         t for t in json.loads((PIT_DIR / "still_listed_leavers.json").read_text())})
     print("figures written; survivorship gap:", gone["left_and_unavailable"], "of", gone["members_at_start"])
