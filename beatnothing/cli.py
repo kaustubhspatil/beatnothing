@@ -32,7 +32,8 @@ def _score(args) -> int:
 
 def _leaderboard(args) -> int:
     from .leaderboard import main
-    board = main(args.actual, n_boot=args.n_boot, root=args.root, track=args.track)
+    board = main(args.actual, n_boot=args.n_boot, root=args.root, track=args.track,
+                 seed=args.seed, output_scope=args.output_scope)
     print(f"scored {len(board['entries'])} submissions on the {args.track} track; leaderboard written")
     return 0
 
@@ -109,6 +110,8 @@ def main(argv=None) -> int:
     lb.add_argument("--actual", default=None)
     lb.add_argument("--n-boot", type=int, default=2000)
     lb.add_argument("--track", choices=["survivor48", "pit"], default="survivor48")
+    lb.add_argument("--seed", type=int, default=None)
+    lb.add_argument("--output-scope", choices=["official", "research"], default="official")
     lb.set_defaults(func=_leaderboard)
 
     p = sub.add_parser("pbo", help="how much of your best variant was the search itself "

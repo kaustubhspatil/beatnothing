@@ -28,12 +28,15 @@ from __future__ import annotations
 
 import json
 import os
+import hashlib
 from pathlib import Path
+from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
 
 from .engine import Backtest, COST_BPS
+from .io import load_actual, load_bars, load_submission, load_signal
 from .score import cost_grid, net_edge, sharpe
 from .stats import joint_sharpe_tests
 
@@ -67,29 +70,10 @@ TRACKS = {
 }
 
 
-def load_actual(path: Path) -> pd.DataFrame:
-    """Realised next day returns, wide (dates x tickers)."""
-    df = pd.read_parquet(path)
-    return df.pivot(index="Date", columns="Ticker", values="target").sort_index()
-
-
-def load_signal(path: Path) -> pd.DataFrame:
-    """A long format signal file (Date, Ticker, value) as a wide frame."""
-    sig = pd.read_parquet(path)
-    return sig.pivot(index="Date", columns="Ticker", values="value").sort_index()
-
-
-def load_bars(path: Path | None) -> pd.DataFrame | None:
-    """Investable bar returns (Date index, one column per ETF), or None if absent."""
-    if path is None or not Path(path).exists():
+def _sha256(path: Path | None) -> str | None:
+    if path is None or not path.exists():
         return None
-    df = pd.read_parquet(path)
-    return df.set_index("Date").sort_index()
-
-
-def load_submission(folder: Path) -> tuple[dict, pd.DataFrame]:
-    meta = json.loads((folder / "meta.json").read_text(encoding="utf-8"))
-    return meta, load_signal(folder / "signal.parquet")
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def bar_returns(actual: pd.DataFrame, cost_bps: float = COST_BPS) -> pd.Series:
@@ -162,21 +146,26 @@ def score_signal(signal_path: Path, actual_path: Path, kind: str = "predictions"
 
 
 def build(actual_path: Path, n_boot: int = 2000, root: Path | None = None, submissions: Path | None = None,
-          universe: str | None = None) -> dict:
+          universe: str | None = None, seed: int = 0, track: str | None = None) -> dict:
     root = root or ROOT
     submissions = submissions or root / "submissions"
     actual = load_actual(actual_path)
-    bars = load_bars(root / "data" / "benchmark_returns.parquet")
+    bars_path = root / "data" / "benchmark_returns.parquet"
+    bars = load_bars(bars_path)
     inv_all = bars[INVESTABLE_BAR] if bars is not None and INVESTABLE_BAR in bars.columns else None
     subs = sorted(p for p in submissions.iterdir() if (p / "meta.json").exists())
     ubars = {}
     for name, (s, e) in WINDOWS.items():
         a = actual.loc[(actual.index >= s) & (actual.index <= e)]
         ubars[name] = bar_returns(a)
-    board = {"windows": WINDOWS, "cost_bps": COST_BPS, "universe": universe,
+    board = {"windows": WINDOWS, "cost_bps": COST_BPS, "universe": universe, "track": track,
              "bar": "always long, equal weight, same universe, same costs",
              "investable_bar": f"{INVESTABLE_BAR}, the equal weight S&P 500 ETF, buy and hold" if inv_all is not None else None,
-             "entries": []}
+             "entries": [], "seed": int(seed),
+             "provenance": {"generated_at_utc": datetime.now(timezone.utc).isoformat(),
+                            "actual_path": str(actual_path), "actual_sha256": _sha256(actual_path),
+                            "benchmark_path": str(bars_path), "benchmark_sha256": _sha256(bars_path),
+                            "submissions_path": str(submissions)}}
     series = {w: {} for w in WINDOWS}
     bar_series = {w: {} for w in WINDOWS}
     for folder in subs:
@@ -199,7 +188,7 @@ def build(actual_path: Path, n_boot: int = 2000, root: Path | None = None, submi
     for wname in WINDOWS:
         if not series[wname]:
             continue
-        joint = joint_sharpe_tests(series[wname], bar_series[wname], n_boot=n_boot, seed=0)
+        joint = joint_sharpe_tests(series[wname], bar_series[wname], n_boot=n_boot, seed=seed)
         board["multiple_testing"][wname] = {k: v for k, v in joint.items() if k != "contestants"}
         for cname, stats in joint["contestants"].items():
             by_name[cname]["windows"][wname].update(stats)
@@ -222,6 +211,8 @@ def to_markdown(board: dict) -> str:
     mt = board.get("multiple_testing", {})
     block = next((v.get("block_size") for v in mt.values()), None)
     k = next((v.get("n_contestants") for v in mt.values()), len(board["entries"]))
+    live = next((v.get("n_live_hypotheses") for v in mt.values()), None)
+    q95 = next((v.get("bootstrap_max_t_q95") for v in mt.values()), None)
     out += [f"Universe bar: {board['bar']}. Costs: {board['cost_bps']:.0f} bps per unit of turnover. "
             "Net Edge = net Sharpe minus the bar's net Sharpe on the same days. The interval and the "
             "p value come from a studentized circular block bootstrap (Ledoit and Wolf), which recomputes "
@@ -231,6 +222,9 @@ def to_markdown(board: dict) -> str:
             + f"{k} contestants on this board: it is the one that decides. Testing {k} contestants "
             f"separately at five percent would produce a false winner {1 - 0.95 ** k:.0%} of the time, "
             "so a contestant clears its bar only when the adjusted p value is at or below five percent."]
+    if live is not None:
+        out.append(f" Joint diagnostics: {live} live hypotheses in the stepdown."
+                   + (f" 95th percentile of the bootstrap max t-statistic: {q95:.2f}." if isinstance(q95, (int, float)) else ""))
     if has_inv:
         out.append(f" Investable bar: {board['investable_bar']}, no cost charged because it is one position held "
                    "throughout; it holds every index member by construction, dead ones included. The gap between "
@@ -282,13 +276,16 @@ def to_markdown(board: dict) -> str:
 
 
 def main(actual_path: str | Path | None = None, n_boot: int = 2000, root: str | Path | None = None,
-         track: str = "survivor48"):
+         track: str = "survivor48", seed: int | None = None, output_scope: str = "official"):
     root = Path(root) if root else ROOT
     cfg = TRACKS[track]
     actual_path = Path(actual_path) if actual_path else root / cfg["actual"]
-    board = build(actual_path, n_boot=n_boot, root=root, submissions=root / cfg["submissions"], universe=cfg["universe"])
-    board["track"] = track
-    out_dir = root / cfg["out"]
+    resolved_seed = int(seed if seed is not None else os.environ.get("BEATNOTHING_SEED", 0))
+    board = build(actual_path, n_boot=n_boot, root=root, submissions=root / cfg["submissions"],
+                  universe=cfg["universe"], seed=resolved_seed, track=track)
+    if output_scope not in ("official", "research"):
+        raise ValueError("output_scope must be 'official' or 'research'")
+    out_dir = root / cfg["out"] if output_scope == "official" else root / "leaderboard" / "research" / track
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "leaderboard.json").write_text(json.dumps(board, indent=2, default=str), encoding="utf-8")
     (out_dir / "LEADERBOARD.md").write_text(to_markdown(board), encoding="utf-8")
