@@ -1,17 +1,17 @@
 {
-  "built": "2026-09-17",
-  "rows": 56592,
-  "last_decision_date": "2026-09-16",
+  "built": "2026-10-01",
+  "rows": 57024,
+  "last_decision_date": "2026-09-29",
   "bars": [
     "RSP",
     "SPY"
   ],
   "files": {
-    "sp500_stocks.csv": "297bbeb208e20cffa667759cc55df2c57f67f8a7f1932cfb2500e4225ff8262a",
-    "vix.csv": "876f83fbcf9548cf2ed0e703b02497a478f82cbedcf184347c6af332ad837e10",
-    "treasury_10y.csv": "3cb6ea675bde8c480b961460cb07adcac8a608c6d91714b5f3b35835e553a8d1",
-    "feature_panel.parquet": "1be0f965f109024df711a9c36d2272df78cf099e5dc79f34ceed7891367f412a",
-    "actual_returns.parquet": "47aaa6420b418a4494fd1707126b4ab4cce1b607aedfb2761b385d777c969687",
-    "benchmark_returns.parquet": "0f0364563391c10fafc3170053f667da22f4c5a88923512bd7c29e16faf2db9a"
+    "sp500_stocks.csv": "9c7540ecc7cbf050cafa1dcc7a80558c565c7bee0663c0f0541afe3cf965b261",
+    "vix.csv": "75569cd2287c8454be287d69a69a6294e6743e0682d98a35aa1944c6557e80ad",
+    "treasury_10y.csv": "325147056a79e20f34637c67bdadf4a91eddd2391a20ac0a76a05317ccd7be9d",
+    "feature_panel.parquet": "550f9721b90f37425cab9ab0cbfe69e05f52e838081570d4f4665631d7a4188b",
+    "actual_returns.parquet": "47ec1da5985f4d7a430321fd7b02fc8b62d6b15d8460d60b8c8a537360fe7b79",
+    "benchmark_returns.parquet": "238f30f29470e5f2099e7e3b31dc92a6d705f27d3af88bed5b1ad92be1d0df54"
   }
 }
